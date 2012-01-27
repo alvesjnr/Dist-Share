@@ -9,7 +9,7 @@ from dist_creator import get_flat_packages, create_copy, CreateCopyError, add_te
 
 packages_disclaimer = """#Comment or remove the packages that you want to avoid in your distribution\n\n"""
 root_path = "/home/antonio/Projects/LightPy"
-extensions = ['.py', '.pyo']
+extensions = ['.py',]
 
 class App(object):
 
@@ -102,7 +102,9 @@ class App(object):
     def event_next(self):
 
         license = self.license_box.get(1.0, tk.END)
-        pre_processed_packages = self.packages_box.dump(1.0, tk.END)
+        pre_processed_packages = self.packages_box.get(1.0, tk.END).strip().split('\n')
+        pre_processed_packages.remove('')
+
         original_packages = get_flat_packages(self.dirname)
 
         if not license.strip():
@@ -114,11 +116,11 @@ class App(object):
 
         processed_packages = []
 
-        for t, v, i in pre_processed_packages:
-            v = v.strip()
-            if v and t == 'text' and v[0] != '#':
-                if v in original_packages:
-                    processed_packages.append(v)
+        for i in pre_processed_packages:
+            i = i.strip()
+            if i[0] != '#':
+                if i in original_packages:
+                    processed_packages.append(i)
         
         if processed_packages:
             target_path = tkFileDialog.askdirectory(parent=self.root,initialdir='/tmp',title='Please select target directory')
