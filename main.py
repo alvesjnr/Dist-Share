@@ -9,7 +9,6 @@ from dist_creator import get_flat_packages, create_copy, CreateCopyError, add_li
 
 packages_disclaimer = """#Comment or remove the packages that you want to avoid in your distribution\n\n"""
 root_path = "/home/antonio/Projects/LightPy"
-extensions = ['.py',]
 
 class App(object):
 
@@ -112,12 +111,11 @@ class App(object):
                 return
             license = ''
 
-
         processed_packages = []
 
         for i in pre_processed_packages:
             i = i.strip()
-            if i[0] != '#':
+            if i and i[0] != '#':
                 if i in original_packages:
                     processed_packages.append(i)
         
@@ -132,7 +130,7 @@ class App(object):
                     sys.stderr.write(e.message)
                     tkMessageBox.showinfo(message='It was not possible to create the project copy')
                 
-                add_license(target_path, extensions, license)
+                add_license(target_path, license)
                             
     
 if __name__=='__main__':
