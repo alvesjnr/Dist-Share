@@ -55,14 +55,17 @@ class App(object):
         self.buttons_frame = tk.Frame(self.main_frame)
         
         self.button_find = tk.Button(self.buttons_frame, 
-                                     text="Find",
-                                     command=self.event_find_packages)
+                                     text="Open",
+                                     command=self.event_find_packages,
+                                     width=8)
         self.button_refresh = tk.Button(self.buttons_frame,
                                         text="Refresh",
-                                        command=self.event_refresh)
+                                        command=self.event_refresh,
+                                        width=8)
         self.button_next = tk.Button(self.buttons_frame,
                                      text="Create",
-                                     command=self.event_next)        
+                                     command=self.event_next,
+                                     width=8)
         
         self.button_find.pack(side=tk.LEFT)
         self.button_refresh.pack(side=tk.LEFT)
@@ -88,14 +91,24 @@ class App(object):
             packages = get_flat_packages(self.dirname)
             self.set_packages(packages)
         
+    
     def event_refresh(self):
         if self.dirname:
             packages = get_flat_packages(self.dirname)
             self.set_packages(packages)
     
+    
     def event_next(self):
-        original_packages = get_flat_packages(self.dirname)
+
+        license = self.license_box.dump(1.0, tk.END)
         pre_processed_packages = self.packages_box.dump(1.0, tk.END)
+        original_packages = get_flat_packages(self.dirname)
+        
+        if not license.strip():
+            if not tkMessageBox.askokcancel('License','No license found. Do you want to proceed anyway?'):
+                return
+        license = process_license(license)
+
         processed_packages = []
         for t, v, i in pre_processed_packages:
             v = v.strip()
@@ -109,10 +122,19 @@ class App(object):
             
             try:
                 create_copy(self.dirname,target_path,processed_packages)
-            except CreateCopyError:
-                print 'meleca' 
-                    
+            except CreateCopyError as e:
+                sys.stderr.write(e.message)
+                tkMessageBox.showinfo(message='It was not possible to create the project copy')
     
+    
+    def process_license(self, license):
+        license = license.strip()
+        if license.startswith('"""') and license.endswith('"""'):
+            return license + '\n\n\n'
+        else:
+            return '"""' + license + '"""\n\n\n'
+
+                            
     
 if __name__=='__main__':
     root = tk.Tk()

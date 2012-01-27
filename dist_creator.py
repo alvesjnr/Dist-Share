@@ -3,7 +3,6 @@ import pkgutil
 import os
 import shutil
 from os import path
-from pprint import pprint
 import tkFileDialog, tkMessageBox
 
 def get_modules_tree(root):
@@ -25,11 +24,7 @@ def get_package_child(name,root):
 def get_flat_packages(root):
 
     return [_[1] for _ in pkgutil.iter_modules([root])]
-    
-
-class CreateCopyError(Exception):
-    """Problems to create copy"""
-    
+        
 
 def create_copy(origin, destin, packages):
     #create a new directory with the name of the distribution
@@ -53,19 +48,27 @@ def create_copy(origin, destin, packages):
                 try:
                     shutil.copy2(os.path.join(origin,f), os.path.join(destin,f))
                 except:
-                    raise CreateCopyError
+                    raise CreateCopyError(e.message)
 
+def add_text(root, extensions, text):
+    files = os.listdir(root)
 
-
-if __name__ == '__main__':
-    
-    if len(sys.argv) != 2:
-        print '%s: missing root operand' % (sys.argv[0])
-        print "Try '%s <package_root>'" % (sys.argv[0])
-    else:
-        pkg_root = sys.argv[1]
-        if not path.isdir(pkg_root):
-            raise ArgumentError
+    for f in files:
+        file_path = os.path.join(root,f)
+        if os.path.isdir(file_path):
+            add_text(file_path, extensions, text)
         else:
-            pprint(get_modules_tree(pkg_root))
-        
+            for ext in extensions:  #TODO it is not performatic!
+                if f.endswith(ext):
+                    with open(file_path, "r+") as f:
+                         old = f.read() 
+                         f.seek(0) 
+                         f.write(text+"\n" + old) 
+                    break
+
+
+class CreateCopyError(Exception):
+    """Problems to create copy"""
+    def __init__(self,message):
+        self.message = message
+
