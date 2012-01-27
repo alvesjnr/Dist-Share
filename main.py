@@ -5,10 +5,11 @@ import tkFileDialog, tkMessageBox
 import os
 import shutil
 
-from dist_creator import get_flat_packages, create_copy, CreateCopyError
+from dist_creator import get_flat_packages, create_copy, CreateCopyError, add_text
 
 packages_disclaimer = """#Comment or remove the packages that you want to avoid in your distribution\n\n"""
 root_path = "/home/antonio/Projects/LightPy"
+extensions = ['.py', '.pyo']
 
 class App(object):
 
@@ -100,16 +101,19 @@ class App(object):
     
     def event_next(self):
 
-        license = self.license_box.dump(1.0, tk.END)
+        license = self.license_box.get(1.0, tk.END)
         pre_processed_packages = self.packages_box.dump(1.0, tk.END)
         original_packages = get_flat_packages(self.dirname)
-        
+
         if not license.strip():
             if not tkMessageBox.askokcancel('License','No license found. Do you want to proceed anyway?'):
                 return
-        license = process_license(license)
+            license = ''
+        else:
+            license = self.process_license(license)
 
         processed_packages = []
+
         for t, v, i in pre_processed_packages:
             v = v.strip()
             if v and t == 'text' and v[0] != '#':
@@ -118,21 +122,24 @@ class App(object):
         
         if processed_packages:
             target_path = tkFileDialog.askdirectory(parent=self.root,initialdir='/tmp',title='Please select target directory')
-            target_path = os.path.join(target_path, self.dist_name_entry.get())
-            
-            try:
-                create_copy(self.dirname,target_path,processed_packages)
-            except CreateCopyError as e:
-                sys.stderr.write(e.message)
-                tkMessageBox.showinfo(message='It was not possible to create the project copy')
+            if target_path:
+                target_path = os.path.join(target_path, self.dist_name_entry.get())
+                
+                try:
+                    create_copy(self.dirname,target_path,processed_packages)
+                except CreateCopyError as e:
+                    sys.stderr.write(e.message)
+                    tkMessageBox.showinfo(message='It was not possible to create the project copy')
+                
+                add_text(target_path, extensions, license)
     
     
     def process_license(self, license):
         license = license.strip()
         if license.startswith('"""') and license.endswith('"""'):
-            return license + '\n\n\n'
+            return license + '\n\n'
         else:
-            return '"""' + license + '"""\n\n\n'
+            return '"""' + license + '"""\n\n'
 
                             
     
