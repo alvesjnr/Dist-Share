@@ -5,6 +5,12 @@ import shutil
 from os import path
 import tkFileDialog, tkMessageBox
 
+comments = {'.py':{'begin':'"""', 'end':'"""'},
+            '.c':{'begin':'/*', 'end':'*/'},
+            '.cpp':{'begin':'/*', 'end':'*/'},
+            '.h':{'begin':'/*', 'end':'*/'},
+            }
+
 def get_modules_tree(root):
     return {root : get_package_child(root,root)}
     
@@ -50,21 +56,37 @@ def create_copy(origin, destin, packages):
                 except:
                     raise CreateCopyError(e.message)
 
-def add_text(root, extensions, text):
+def add_license(root, extensions, text):
     files = os.listdir(root)
 
     for f in files:
         file_path = os.path.join(root,f)
         if os.path.isdir(file_path):
-            add_text(file_path, extensions, text)
+            add_license(file_path, extensions, text)
         else:
-            for ext in extensions:  #TODO it is not performatic!
-                if f.endswith(ext):
-                    with open(file_path, "r+") as f:
-                         old = f.read() 
-                         f.seek(0) 
-                         f.write(text+"\n" + old) 
-                    break
+            _,ext = os.path.splitext(f)
+            if ext in extensions:
+                license = process_license(text, ext)
+                with open(file_path, "r+") as f:
+                     old = f.read() 
+                     f.seek(0) 
+                     f.write(license+"\n" + old) 
+                break
+
+
+def process_license(license, extension):
+
+    if not license:
+        return ''
+
+    comment_begin = comments[extension]['begin']
+    comment_end = comments[extension]['end']
+
+    license = license.strip()
+    if license.startswith(comment_begin) and license.endswith(comment_end):
+        return license + '\n\n'
+    else:
+        return comment_begin + license + comment_end + "\n\n"
 
 
 class CreateCopyError(Exception):

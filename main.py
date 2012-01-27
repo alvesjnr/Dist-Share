@@ -5,7 +5,7 @@ import tkFileDialog, tkMessageBox
 import os
 import shutil
 
-from dist_creator import get_flat_packages, create_copy, CreateCopyError, add_text
+from dist_creator import get_flat_packages, create_copy, CreateCopyError, add_license
 
 packages_disclaimer = """#Comment or remove the packages that you want to avoid in your distribution\n\n"""
 root_path = "/home/antonio/Projects/LightPy"
@@ -111,8 +111,7 @@ class App(object):
             if not tkMessageBox.askokcancel('License','No license found. Do you want to proceed anyway?'):
                 return
             license = ''
-        else:
-            license = self.process_license(license)
+
 
         processed_packages = []
 
@@ -133,16 +132,7 @@ class App(object):
                     sys.stderr.write(e.message)
                     tkMessageBox.showinfo(message='It was not possible to create the project copy')
                 
-                add_text(target_path, extensions, license)
-    
-    
-    def process_license(self, license):
-        license = license.strip()
-        if license.startswith('"""') and license.endswith('"""'):
-            return license + '\n\n'
-        else:
-            return '"""' + license + '"""\n\n'
-
+                add_license(target_path, extensions, license)
                             
     
 if __name__=='__main__':
