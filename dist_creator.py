@@ -9,7 +9,9 @@ comments = {'.py':{'begin':'"""', 'end':'"""'},
             '.c':{'begin':'/*', 'end':'*/'},
             '.cpp':{'begin':'/*', 'end':'*/'},
             '.h':{'begin':'/*', 'end':'*/'},
+            '.hpp':{'begin':'/*', 'end':'*/'},
             }
+extensions = [key for key in comments]
 
 def get_modules_tree(root):
     return {root : get_package_child(root,root)}
@@ -56,22 +58,26 @@ def create_copy(origin, destin, packages):
                 except:
                     raise CreateCopyError(e.message)
 
-def add_license(root, extensions, text):
+def add_license(root, text):
     files = os.listdir(root)
 
     for f in files:
         file_path = os.path.join(root,f)
+
         if os.path.isdir(file_path):
-            add_license(file_path, extensions, text)
+            add_license(file_path, text)
         else:
             _,ext = os.path.splitext(f)
             if ext in extensions:
                 license = process_license(text, ext)
                 with open(file_path, "r+") as f:
-                     old = f.read() 
-                     f.seek(0) 
-                     f.write(license+"\n" + old) 
-                break
+                    try:
+                        #FIXME: seek for the correct codec!
+                        old = f.read() 
+                        f.seek(0) 
+                        f.write(license+"\n" + old)
+                    except:
+                        pass
 
 
 def process_license(license, extension):
