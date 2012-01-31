@@ -5,14 +5,14 @@ import tkFileDialog, tkMessageBox
 import os
 import shutil
 
-from dist_creator import get_flat_packages, create_copy, CreateCopyError, add_license
+from dist_creator import *
 
 packages_disclaimer = """#Comment or remove the packages that you want to avoid in your distribution\n\n"""
-root_path = "/home/antonio/Projects/LightPy"
+root_path = "/home/antonio/Projects/dist_project/example"
 
 class App(object):
 
-    dirname = ''
+    origin_path = ''
     
     def __init__(self,root):
         
@@ -85,53 +85,42 @@ class App(object):
         self.packages_box.insert(1.0, packages_disclaimer + '\n'.join(packages_list))
     
     def event_find_packages(self):
-        dirname = tkFileDialog.askdirectory(parent=self.root,initialdir=root_path,title='Please select source directory')
-        if dirname:
-            self.dirname = dirname
-            packages = get_flat_packages(self.dirname)
+        origin_path = tkFileDialog.askdirectory(parent=self.root,initialdir=root_path,title='Please select source directory')
+        if origin_path:
+            self.origin_path = origin_path
+            packages = get_flat_packages(self.origin_path)
             self.set_packages(packages)
         
     
     def event_refresh(self):
-        if self.dirname:
-            packages = get_flat_packages(self.dirname)
+        if self.origin_path:
+            packages = get_flat_packages(self.origin_path)
             self.set_packages(packages)
     
     
     def event_next(self):
 
-        license = self.license_box.get(1.0, tk.END)
-        pre_processed_packages = self.packages_box.get(1.0, tk.END).strip().split('\n')
-        pre_processed_packages.remove('')
+        if not self.origin_path:
+            return
 
-        original_packages = get_flat_packages(self.dirname)
+        license = self.license_box.get(1.0, tk.END)
+        raw_packages = self.packages_box.get(1.0, tk.END).strip().split('\n')
+        raw_packages.remove('')
 
         if not license.strip():
             if not tkMessageBox.askokcancel('License','No license found. Do you want to proceed anyway?'):
                 return
-            license = ''
+            else:
+                license = ''
 
-        processed_packages = []
-
-        for i in pre_processed_packages:
-            i = i.strip()
-            if i and i[0] != '#':
-                if i in original_packages:
-                    processed_packages.append(i)
+        target_path = tkFileDialog.askdirectory(parent=self.root,initialdir='/tmp',title='Please select target directory')
         
-        if processed_packages:
-            target_path = tkFileDialog.askdirectory(parent=self.root,initialdir='/tmp',title='Please select target directory')
-            if target_path:
-                target_path = os.path.join(target_path, self.dist_name_entry.get())
-                
-                try:
-                    create_copy(self.dirname,target_path,processed_packages)
-                except CreateCopyError as e:
-                    sys.stderr.write(e.message)
-                    tkMessageBox.showinfo(message='It was not possible to create the project copy')
-                
-                add_license(target_path, license)
-                            
+        if target_path:
+            target_path = os.path.join(target_path, self.dist_name_entry.get())
+
+        if process_copy(self.origin_path, target_path, raw_packages, license):
+            tkMessageBox.showinfo(message='Process finished')
+        
     
 if __name__=='__main__':
     root = tk.Tk()
