@@ -39,7 +39,7 @@ def create_copy(origin, destin, packages):
     try:
         os.mkdir(destin)
     except OSError as e:
-        tkMessageBox.showinfo(message='This file already exists\nChoose a different name')
+        tkMessageBox.showwarning(message='This file already exists\nChoose a different name')
         return
     
     original_packages = get_flat_packages(origin)
@@ -59,6 +59,7 @@ def create_copy(origin, destin, packages):
                     raise CreateCopyError(e.message)
 
 def add_license(root, text):
+
     files = os.listdir(root)
 
     for f in files:
@@ -71,17 +72,18 @@ def add_license(root, text):
             if ext in extensions:
                 license = process_license(text, ext)
                 with open(file_path, "r+") as f:
+                    old = f.read() 
+                    f.seek(0) 
                     try:
-                        #FIXME: seek for the correct codec!
-                        old = f.read() 
-                        f.seek(0) 
                         f.write(license+"\n" + old)
                     except:
+                        #FIXME: seek for the correct codec!
+                        f.write(old)
                         pass
 
 
 def process_license(license, extension):
-
+    import pdb; pdb.set_trace()
     if not license:
         return ''
 
@@ -93,6 +95,35 @@ def process_license(license, extension):
         return license + '\n\n'
     else:
         return comment_begin + license + comment_end + "\n\n"
+
+def process_packages(raw_packages, origin_path):
+    
+    original_packages = get_flat_packages(origin_path)
+    processed_packages = []
+
+    for i in raw_packages:
+        i = i.strip()
+        if i and i[0] != '#':
+            if i in original_packages:
+                processed_packages.append(i)
+
+    return processed_packages
+    
+        
+def process_copy(origin_path, target_path, packages, raw_license):
+
+    processed_packages = process_packages(packages, origin_path)
+
+    if processed_packages:
+                    
+            try:
+                create_copy(origin_path, target_path, processed_packages)
+            except CreateCopyError as e:
+                sys.stderr.write(e.message)
+                tkMessageBox.showinfo(message='It was not possible to create the project copy')
+            
+            add_license(target_path, raw_license)
+
 
 
 class CreateCopyError(Exception):
