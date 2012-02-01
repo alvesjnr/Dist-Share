@@ -5,6 +5,7 @@ import shutil
 from os import path
 import tkFileDialog, tkMessageBox
 
+
 comments = {'.py':{'begin':'"""', 'end':'"""'},
             '.c':{'begin':'/*', 'end':'*/'},
             '.cpp':{'begin':'/*', 'end':'*/'},
@@ -12,6 +13,8 @@ comments = {'.py':{'begin':'"""', 'end':'"""'},
             '.hpp':{'begin':'/*', 'end':'*/'},
             }
 extensions = [key for key in comments]
+DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
+
 
 def get_modules_tree(root):
     return {root : get_package_child(root,root)}
@@ -56,7 +59,8 @@ def create_copy(origin, destin, packages):
                 try:
                     shutil.copy2(os.path.join(origin,f), os.path.join(destin,f))
                 except:
-                    raise CreateCopyError(e.message)
+                    raise e
+
 
 def add_license(root, text):
 
@@ -71,19 +75,27 @@ def add_license(root, text):
             _,ext = os.path.splitext(f)
             if ext in extensions:
                 license = process_license(text, ext)
+
                 with open(file_path, "r+") as f:
-                    old = f.read() 
-                    f.seek(0) 
-                    try:
-                        f.write(license+"\n" + old)
-                    except:
-                        #FIXME: seek for the correct codec!
-                        f.write(old)
-                        pass
+                    firstline = f.readline()
+                    if DO_NOT_ADD_LICENSE_MARKER in firstline.upper():
+                        old = f.read()
+                        f.close()
+                        with open(file_path, 'w') as f:
+                            f.write(old)
+                    else:
+                        f.seek(0)
+                        old = f.read() #This technique just works if the new text is larger than the original!!
+                        f.seek(0)
+                        try:
+                            f.write(license+"\n" + old)
+                        except:
+                            #FIXME: seek for the correct codec!
+                            f.write(old)
 
 
 def process_license(license, extension):
-    import pdb; pdb.set_trace()
+
     if not license:
         return ''
 
@@ -95,6 +107,7 @@ def process_license(license, extension):
         return license + '\n\n'
     else:
         return comment_begin + license + comment_end + "\n\n"
+
 
 def process_packages(raw_packages, origin_path):
     
@@ -123,11 +136,4 @@ def process_copy(origin_path, target_path, packages, raw_license):
                 tkMessageBox.showinfo(message='It was not possible to create the project copy')
             
             add_license(target_path, raw_license)
-
-
-
-class CreateCopyError(Exception):
-    """Problems to create copy"""
-    def __init__(self,message):
-        self.message = message
 
