@@ -83,14 +83,15 @@ def add_license(root, text):
                         f.close()
                         with open(file_path, 'w') as f:
                             f.write(old)
+                        continue    #avoid any problems of reusing the f var
                     else:
                         f.seek(0)
-                        old = f.read() #This technique just works if the new text is larger than the original!!
+                        old = f.read()
                         f.seek(0)
                         try:
                             f.write(license+"\n" + old)
                         except:
-                            #FIXME: seek for the correct codec!
+                            #FIXME: seek for the correct encoding!
                             f.write(old)
 
 
@@ -128,12 +129,15 @@ def process_copy(origin_path, target_path, packages, raw_license):
     processed_packages = process_packages(packages, origin_path)
 
     if processed_packages:
-                    
-            try:
-                create_copy(origin_path, target_path, processed_packages)
-            except CreateCopyError as e:
-                sys.stderr.write(e.message)
-                tkMessageBox.showinfo(message='It was not possible to create the project copy')
-            
-            add_license(target_path, raw_license)
+                
+        try:
+            create_copy(origin_path, target_path, processed_packages)
+        except CreateCopyError as e:
+            sys.stderr.write(e.message)
+            tkMessageBox.showinfo(message='It was not possible to create the project copy')
+            return False
+        
+        add_license(target_path, raw_license)
+
+        return True
 
