@@ -108,31 +108,14 @@ def process_license(license, extension):
         return license + '\n\n'
     else:
         return comment_begin + license + comment_end + "\n\n"
-
-
-def process_packages(raw_packages, origin_path):
-    
-    original_packages = get_flat_packages(origin_path)
-    processed_packages = []
-
-    for i in raw_packages:
-        i = i.strip()
-        if i and i[0] != '#':
-            if i in original_packages:
-                processed_packages.append(i)
-
-    return processed_packages
-    
         
 def process_copy(origin_path, target_path, packages, raw_license):
 
-    processed_packages = process_packages(packages, origin_path)
-
-    if processed_packages:
+    if packages:
                 
         try:
-            create_copy(origin_path, target_path, processed_packages)
-        except CreateCopyError as e:
+            create_copy(origin_path, target_path, packages)
+        except CreateCopyError as e: #FIXME: this exception just DOESN'T EXIST!!!
             sys.stderr.write(e.message)
             tkMessageBox.showinfo(message='It was not possible to create the project copy')
             return False
@@ -140,4 +123,6 @@ def process_copy(origin_path, target_path, packages, raw_license):
         add_license(target_path, raw_license)
 
         return True
+    
+    return False
 
