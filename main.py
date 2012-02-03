@@ -17,6 +17,8 @@ class App(object):
     def __init__(self,root):
         
         self.root = root
+
+        self.packages_variable = {}
                 
         self.main_frame = tk.Frame(self.root)
         
@@ -83,12 +85,18 @@ class App(object):
         
         self.main_frame.pack()
     
+
     def set_packages(self, packages_list):
-        self.checkbuttons_variable = {}
+        if self.packages_variable:
+            for package in self.packages_variable.values():
+                package['button'].pack_forget()
+
+        self.packages_variable = {}
         for package in packages_list:
             var = tk.IntVar()
             c = tk.Checkbutton(self.packages_frame, text=package, variable=var, anchor='w',)
-            self.checkbuttons_variable.update( {package:var.get} ) 
+            var.set(1)
+            self.packages_variable.update( {package: {'var': var, 'button':c}}  ) 
             c.pack(anchor='w')
 
     
@@ -101,11 +109,8 @@ class App(object):
         
     
     def event_refresh(self):
-        import pdb; pdb.set_trace()
-        if self.origin_path:
-            packages = get_flat_packages(self.origin_path)
-            self.set_packages(packages)
-    
+        for package in self.packages_variable.values():
+            package['var'].set(1)
     
     def event_next(self):
 
