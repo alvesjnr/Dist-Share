@@ -15,6 +15,9 @@ comments = {'.py':{'begin':'"""', 'end':'"""'},
 extensions = [key for key in comments]
 DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
 
+class CreateCopyError(Exception):
+    """Something wrong when copying"""
+    message="Something wrong when copying"
 
 def get_modules_tree(root):
     return {root : get_package_child(root,root)}
