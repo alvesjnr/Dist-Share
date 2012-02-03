@@ -18,7 +18,7 @@ class App(object):
         
         self.root = root
 
-        self.packages_variable = {}
+        self.packages_variables = {}
                 
         self.main_frame = tk.Frame(self.root)
         
@@ -87,16 +87,16 @@ class App(object):
     
 
     def set_packages(self, packages_list):
-        if self.packages_variable:
-            for package in self.packages_variable.values():
+        if self.packages_variables:
+            for package in self.packages_variables.values():
                 package['button'].pack_forget()
 
-        self.packages_variable = {}
+        self.packages_variables = {}
         for package in packages_list:
             var = tk.IntVar()
             c = tk.Checkbutton(self.packages_frame, text=package, variable=var, anchor='w',)
             var.set(1)
-            self.packages_variable.update( {package: {'var': var, 'button':c}}  ) 
+            self.packages_variables.update( {package: {'var': var, 'button':c}}  ) 
             c.pack(anchor='w')
 
     
@@ -109,7 +109,7 @@ class App(object):
         
     
     def event_refresh(self):
-        for package in self.packages_variable.values():
+        for package in self.packages_variables.values():
             package['var'].set(1)
     
     def event_next(self):
@@ -118,8 +118,8 @@ class App(object):
             return
 
         license = self.license_box.get(1.0, tk.END)
-        raw_packages = self.packages_box.get(1.0, tk.END).strip().split('\n')
-        raw_packages.remove('')
+        raw_packages = [package['button']['text'] for package in self.packages_variables.values() if package['var'].get()]
+        import pdb; pdb.set_trace()
 
         if not license.strip():
             if not tkMessageBox.askokcancel('License','No license found. Do you want to proceed anyway?'):
