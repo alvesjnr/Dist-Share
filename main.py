@@ -84,9 +84,11 @@ class App(object):
         self.main_frame.pack()
     
     def set_packages(self, packages_list):
+        self.checkbuttons_variable = {}
         for package in packages_list:
-            var = tk.BooleanVar(self.root)
+            var = tk.IntVar()
             c = tk.Checkbutton(self.packages_frame, text=package, variable=var, anchor='w',)
+            self.checkbuttons_variable.update( {package:var.get} ) 
             c.pack(anchor='w')
 
     
@@ -99,6 +101,7 @@ class App(object):
         
     
     def event_refresh(self):
+        import pdb; pdb.set_trace()
         if self.origin_path:
             packages = get_flat_packages(self.origin_path)
             self.set_packages(packages)
