@@ -22,15 +22,18 @@ class App(object):
         
         self.main_label = tk.Label(self.main_frame, text="Select the modules for your distribution:")
         
+        self.checkbuttons_frame = tk.Frame(self.root)
+        
         self.packages_frame = tk.Frame(self.main_frame)
-        self.packages_box = tk.Text(self.packages_frame,
-                                   height=10)
-        self.packages_scroll = tk.Scrollbar(self.packages_frame)
-        self.packages_box.config(yscrollcommand=self.packages_scroll.set)
-        self.packages_scroll.config(command=self.packages_box.yview)
-        self.packages_box.pack(side=tk.LEFT)
-        self.packages_scroll.pack(side=tk.LEFT,
-                                  fill=tk.Y)
+        self.packages_scroll = tk.Scrollbar(self.checkbuttons_frame)
+
+        #self.packages_frame.config(yscrollcommand=self.packages_scroll.set)
+        #self.packages_scroll.config(command=self.packages_frame.yview)
+        #self.packages_frame.pack(side=tk.LEFT)
+        #self.packages_scroll.pack(side=tk.LEFT,
+        #                          fill=tk.Y)
+
+
         
         self.license_label = tk.Label(self.main_frame, text="Place here your license:")
 
@@ -71,9 +74,9 @@ class App(object):
         self.button_refresh.pack(side=tk.LEFT)
         self.button_next.pack(side=tk.LEFT)
         
-        self.main_label.pack(side=tk.TOP)
-        self.packages_frame.pack(side=tk.TOP)
-        self.license_label.pack(side=tk.TOP)
+        self.main_label.pack(side=tk.TOP, anchor='w')
+        self.packages_frame.pack(side=tk.TOP, anchor='w')
+        self.license_label.pack(side=tk.TOP, anchor='w')
         self.license_frame.pack(side=tk.TOP)
         self.dist_name_frame.pack(side=tk.LEFT)
         self.buttons_frame.pack(side=tk.TOP)
@@ -81,8 +84,11 @@ class App(object):
         self.main_frame.pack()
     
     def set_packages(self, packages_list):
-        self.packages_box.delete(1.0, tk.END)
-        self.packages_box.insert(1.0, packages_disclaimer + '\n'.join(packages_list))
+        for package in packages_list:
+            var = tk.BooleanVar(self.root)
+            c = tk.Checkbutton(self.packages_frame, text=package, variable=var, anchor='w',)
+            c.pack(anchor='w')
+
     
     def event_find_packages(self):
         origin_path = tkFileDialog.askdirectory(parent=self.root,initialdir=root_path,title='Please select source directory')
