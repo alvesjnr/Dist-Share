@@ -46,7 +46,7 @@ def create_copy(origin, destin, packages):
         os.mkdir(destin)
     except OSError as e:
         tkMessageBox.showwarning(message='This file already exists\nChoose a different name')
-        return
+        raise CreateCopyError
     
     original_packages = get_flat_packages(origin)
     avoided_packages = [p for p in original_packages if p not in packages]
@@ -120,7 +120,6 @@ def process_copy(origin_path, target_path, packages, raw_license):
             create_copy(origin_path, target_path, packages)
         except CreateCopyError as e: #FIXME: this exception just DOESN'T EXIST!!!
             sys.stderr.write(e.message)
-            tkMessageBox.showinfo(message='It was not possible to create the project copy')
             return False
         
         add_license(target_path, raw_license)
@@ -128,4 +127,3 @@ def process_copy(origin_path, target_path, packages, raw_license):
         return True
     
     return False
-

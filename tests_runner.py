@@ -1,4 +1,9 @@
+from StringIO import StringIO
+import traceback    
 import os
+import unittest
+import pkgutil
+import imp
 
 TESTSUITE_PACKAGE_NAME = "testsuite"
 
@@ -20,7 +25,18 @@ def list_tests_from_directory(root, test_files=[]):
     
     return test_files
 
+def run_tests(test_files):
+    output_log = StringIO()
+    for f in test_files:
+        try:
+            execfile(f)
+        except Exception, e:
+            traceback.print_exc(file=output_log)
+    output_log.seek(0)
+    return output_log.read()
 
 if __name__=='__main__':
-    from pprint import pprint as pp #pretty print
-    pp(list_tests_from_directory('/tmp/new_distribution_name'))
+    test_files = list_tests_from_directory('/home/antonio/Projects/LightPy')
+    output_log = run_tests(test_files, output_log)
+
+    print output_log.read()
