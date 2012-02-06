@@ -135,11 +135,11 @@ class App(object):
         test_files = tests_runner.list_tests_from_directory(self.origin_path)
         output_log = tests_runner.run_tests(test_files)
 
-        window_toplevel = tk.Toplevel()
-        log_board = LogBoard(window_toplevel)
+        log_window = tk.Toplevel(self.root)
+        log_board = LogBoard(log_window)
         log_board.fill_board(output_log)
-        window_toplevel.transient(self.root)
-        window_toplevel.grab_set()
+        log_window.transient(self)
+        log_window.grab_set()
         self.root.wait_window()
 
 
@@ -179,7 +179,7 @@ class LogBoard(object):
         self.text_board.insert(1.0, text)
 
     def event_save_log(self):
-        fout = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
+        fout = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt", parent=self.root)
 
         if fout:
             log = unicode(self.text_board.get(0.0,tk.END))
@@ -189,7 +189,7 @@ class LogBoard(object):
     
     def event_quit(self):
         if not self.log_saved:
-            if not tkMessageBox.askokcancel('Log not yet saved', 'Log file is not yet saved.\nDo you want to quit anyway?'):
+            if not tkMessageBox.askokcancel('Log not yet saved', 'Log file is not yet saved.\nDo you want to quit anyway?', parent=self.root):
                 return
         self.root.destroy()
         
