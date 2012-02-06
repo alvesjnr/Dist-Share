@@ -143,7 +143,7 @@ class App(object):
         self.root.wait_window()
 
 
-class LogBoard(tk.Widget):
+class LogBoard(object):
     def __init__(self, root):
         
         self.root = root
@@ -179,7 +179,13 @@ class LogBoard(tk.Widget):
         self.text_board.insert(1.0, text)
 
     def event_save_log(self):
-        pass 
+        fout = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
+
+        if fout:
+            log = unicode(self.text_board.get(0.0,tk.END))
+            fout.write(log)
+            fout.close()
+            self.log_saved = True 
     
     def event_quit(self):
         if not self.log_saved:
