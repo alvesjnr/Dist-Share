@@ -124,12 +124,12 @@ class App(object):
         
         if target_path:
             target_path = os.path.join(target_path, self.dist_name_entry.get())
-
+            
         if process_copy(self.origin_path, target_path, raw_packages, license):
             do_tests = tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?')
             if do_tests:
                 self.do_tests()
-    
+        
     def do_tests(self):
 
         test_files = tests_runner.list_tests_from_directory(self.origin_path)
@@ -138,7 +138,7 @@ class App(object):
         log_window = tk.Toplevel(self.root)
         log_board = LogBoard(log_window)
         log_board.fill_board(output_log)
-        log_window.transient(self)
+        log_window.transient(self.root)
         log_window.grab_set()
         self.root.wait_window()
 
