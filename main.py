@@ -119,7 +119,6 @@ class App(object):
 
         license = self.license_box.get(1.0, tk.END)
         raw_packages = [package['button']['text'] for package in self.packages_variables.values() if package['var'].get()]
-        import pdb; pdb.set_trace()
 
         if not license.strip():
             if not tkMessageBox.askokcancel('License','No license found. Do you want to proceed anyway?'):
