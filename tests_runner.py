@@ -22,5 +22,5 @@ def list_tests_from_directory(root, test_files=[]):
 
 
 if __name__=='__main__':
-    from pprint import pprint as pp
+    from pprint import pprint as pp #pretty print
     pp(list_tests_from_directory('/tmp/new_distribution_name'))
