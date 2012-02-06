@@ -128,12 +128,69 @@ class App(object):
         if process_copy(self.origin_path, target_path, raw_packages, license):
             do_tests = tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?')
             if do_tests:
-                test_files = tests_runner.list_tests_from_directory(self.origin_path)
-                output_log = tests_runner.run_tests(test_files)                
+                self.do_tests()
+    
+    def do_tests(self):
+
+        test_files = tests_runner.list_tests_from_directory(self.origin_path)
+        output_log = tests_runner.run_tests(test_files)
+
+        window_toplevel = tk.Toplevel()
+        log_board = LogBoard(window_toplevel)
+        log_board.fill_board(output_log)
+        window_toplevel.transient(self.root)
+        window_toplevel.grab_set()
+        self.root.wait_window()
+
+
+class LogBoard(tk.Widget):
+    def __init__(self, root):
+        
+        self.root = root
+        self.log_saved = False
+        
+        self.text_frame = tk.Frame(self.root )
+        self.text_board = tk.Text(self.text_frame, height=40, width=100 )
+        self.text_scroll = tk.Scrollbar(self.text_frame)
+        
+        self.text_board.config(yscrollcommand=self.text_scroll.set)
+        self.text_scroll.config(command=self.text_board.yview)
+        self.text_board.pack(side=tk.LEFT)
+        self.text_scroll.pack(side=tk.LEFT,
+                                  fill=tk.Y)
+
+        self.buttons_frame = tk.Frame(self.root)
+        self.button_save = tk.Button(self.buttons_frame,
+                                     text="Save",
+                                     command=self.event_save_log,
+                                     width=8)
+        self.button_quit = tk.Button(self.buttons_frame,
+                                     text="Quit",
+                                     command=self.event_quit,
+                                     width=8)
+        self.button_save.pack(side=tk.LEFT)
+        self.button_quit.pack(side=tk.LEFT)
+
+        
+        self.text_frame.pack()
+        self.buttons_frame.pack()
+    
+    def fill_board(self, text):
+        self.text_board.insert(1.0, text)
+
+    def event_save_log(self):
+        pass 
+    
+    def event_quit(self):
+        if not self.log_saved:
+            if not tkMessageBox.askokcancel('Log not yet saved', 'Log file is not yet saved.\nDo you want to quit anyway?'):
+                return
+        self.root.destroy()
         
     
 if __name__=='__main__':
     root = tk.Tk()
     app = App(root)
+    #app = LogBoard(root)
     root.mainloop()
 
