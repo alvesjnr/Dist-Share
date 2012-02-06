@@ -92,7 +92,7 @@ def add_license(root, text):
                         old = f.read()
                         f.seek(0)
                         try:
-                            f.write(license+"\n" + old)
+                            f.write(license + old)
                         except:
                             #FIXME: seek for the correct encoding!
                             f.write(old)
