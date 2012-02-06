@@ -1,4 +1,4 @@
-# ======== Select a directory:
+
 
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
@@ -6,6 +6,8 @@ import os
 import shutil
 
 from dist_creator import *
+import tests_runner
+
 
 packages_disclaimer = """#Comment or remove the packages that you want to avoid in your distribution\n\n"""
 root_path = "/home/antonio/Projects/dist_project/example"
@@ -124,9 +126,10 @@ class App(object):
             target_path = os.path.join(target_path, self.dist_name_entry.get())
 
         if process_copy(self.origin_path, target_path, raw_packages, license):
-            tkMessageBox.showinfo(message='Process finished')
-        else:
-            tkMessageBox.showwarning(message='Process not complete')
+            do_tests = tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?')
+            if do_tests:
+                test_files = tests_runner.list_tests_from_directory(self.origin_path)
+                output_log = tests_runner.run_tests(test_files)                
         
     
 if __name__=='__main__':
