@@ -28,14 +28,6 @@ class App(object):
         
         self.packages_frame = tk.Frame(self.main_frame)
         self.packages_scroll = tk.Scrollbar(self.checkbuttons_frame)
-
-        #self.packages_frame.config(yscrollcommand=self.packages_scroll.set)
-        #self.packages_scroll.config(command=self.packages_frame.yview)
-        #self.packages_frame.pack(side=tk.LEFT)
-        #self.packages_scroll.pack(side=tk.LEFT,
-        #                          fill=tk.Y)
-
-
         
         self.license_label = tk.Label(self.main_frame, text="Place here your license:")
 
@@ -133,6 +125,8 @@ class App(object):
 
         if process_copy(self.origin_path, target_path, raw_packages, license):
             tkMessageBox.showinfo(message='Process finished')
+        else:
+            tkMessageBox.showwarning(message='Process not complete')
         
     
 if __name__=='__main__':
