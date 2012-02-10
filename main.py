@@ -9,8 +9,8 @@ from dist_creator import *
 import tests_runner
 
 
-packages_disclaimer = """#Comment or remove the packages that you want to avoid in your distribution\n\n"""
 root_path = "/home/antonio/Projects/dist_project/example"
+default_target_path = '/tmp'
 
 class App(object):
 
@@ -95,7 +95,9 @@ class App(object):
 
     
     def event_find_packages(self):
-        origin_path = tkFileDialog.askdirectory(parent=self.root,initialdir=root_path,title='Please select source directory')
+        origin_path = tkFileDialog.askdirectory(parent=self.root,
+                                                initialdir=root_path,
+                                                title='Please select source directory')
         if origin_path:
             self.origin_path = origin_path
             packages = get_flat_packages(self.origin_path)
@@ -120,19 +122,21 @@ class App(object):
             else:
                 license = ''
 
-        target_path = tkFileDialog.askdirectory(parent=self.root,initialdir='/tmp',title='Please select target directory')
+        self.target_path = tkFileDialog.askdirectory(parent=self.root,
+                                                     initialdir=default_target_path,
+                                                     title='Please select target directory')
         
-        if target_path:
-            target_path = os.path.join(target_path, self.dist_name_entry.get())
+        if self.target_path:
+            self.target_path = os.path.join(self.target_path, self.dist_name_entry.get())
             
-        if process_copy(self.origin_path, target_path, raw_packages, license):
+        if process_copy(self.origin_path, self.target_path, raw_packages, license):
             do_tests = tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?')
             if do_tests:
                 self.do_tests()
         
     def do_tests(self):
 
-        test_files = tests_runner.list_tests_from_directory(self.origin_path)
+        test_files = tests_runner.list_tests_from_directory(self.target_path)        
         output_log = tests_runner.run_tests(test_files)
 
         log_window = tk.Toplevel(self.root)
@@ -197,6 +201,5 @@ class LogBoard(object):
 if __name__=='__main__':
     root = tk.Tk()
     app = App(root)
-    #app = LogBoard(root)
     root.mainloop()
 
