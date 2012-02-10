@@ -1,9 +1,12 @@
+import subprocess
 from StringIO import StringIO
 import traceback    
+import sys
 import os
 import unittest
 import pkgutil
 import imp
+import time
 
 TESTSUITE_PACKAGE_NAME = "testsuite"
 
@@ -25,18 +28,20 @@ def list_tests_from_directory(root, test_files=[]):
     
     return test_files
 
+
 def run_tests(test_files):
-    output_log = StringIO()
-    for f in test_files:
-        try:
-            execfile(f)
-        except Exception, e:
-            traceback.print_exc(file=output_log)
-    output_log.seek(0)
-    return output_log.read()
-
-if __name__=='__main__':
-    test_files = list_tests_from_directory('/home/antonio/Projects/LightPy')
-    output_log = run_tests(test_files, output_log)
-
-    print output_log.read()
+    
+    filename = '/tmp/dist_share%s' % time.time()
+    with open(filename, 'w') as stdio:
+        for f in test_files:
+            try:
+                stdio.flush()
+                stdio.write('Processing test file %s\n' % f)        
+                stdio.flush()
+                subprocess.call('python ' + f, stderr=stdio, shell=True)
+                stdio.flush()
+                stdio.write('End of file %s\n\n' % f)
+            except Exception, e:
+                traceback.print_exc()
+    with open(filename, 'r') as stdio:
+        return stdio.read()
