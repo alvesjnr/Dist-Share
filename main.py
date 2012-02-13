@@ -9,8 +9,8 @@ from dist_creator import *
 import tests_runner
 
 
-root_path = "/home/antonio/Projects/dist_project/example"
-default_target_path = '/tmp'
+root_path = "~"
+default_target_path = '~'
 
 class App(object):
 
