@@ -2,8 +2,8 @@ import sys
 import pkgutil
 import os
 import shutil
-from os import path
 import tkFileDialog, tkMessageBox
+from os import path
 
 
 comments = {'.py':{'begin':'"""', 'end':'"""'},
@@ -12,6 +12,7 @@ comments = {'.py':{'begin':'"""', 'end':'"""'},
             '.h':{'begin':'/*', 'end':'*/'},
             '.hpp':{'begin':'/*', 'end':'*/'},
             }
+
 extensions = [key for key in comments]
 DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
 
@@ -37,7 +38,7 @@ def get_package_child(name,root):
 
 def get_flat_packages(root):
 
-    return [_[1] for _ in pkgutil.iter_modules([root])]
+    return [module[1] for module in pkgutil.iter_modules([root])]
         
 
 def create_copy(origin, destin, packages):
@@ -118,7 +119,7 @@ def process_copy(origin_path, target_path, packages, raw_license):
                 
         try:
             create_copy(origin_path, target_path, packages)
-        except CreateCopyError as e: #FIXME: this exception just DOESN'T EXIST!!!
+        except CreateCopyError as e:
             sys.stderr.write(e.message)
             return False
         
