@@ -7,6 +7,7 @@ import shutil
 
 from dist_creator import *
 import tests_runner
+import convert
 
 
 root_path = "~"
@@ -19,11 +20,21 @@ class App(object):
     def __init__(self,root):
         
         self.root = root
-
         self.packages_variables = {}
-                
+
+        #Main Frame
         self.main_frame = tk.Frame(self.root)
         
+        #Menu
+        self.menubar = tk.Menu(self.root)        
+        self.menu_tools = tk.Menu(self.menubar, tearoff=0)
+        self.menu_tools_convert = tk.Menu(self.menu_tools)
+        self.menu_tools_convert.add_command(label='svn -> git', command=self.svn2git)
+        self.menu_tools_convert.add_command(label='svn -> mercurial')
+        self.menu_tools.add_cascade(label='Convert', menu=self.menu_tools_convert)
+        self.menubar.add_cascade(label='Tools', menu=self.menu_tools)
+        
+        #Packages Selection
         self.main_label = tk.Label(self.main_frame, text="Select the modules for your distribution:")
         
         self.checkbuttons_frame = tk.Frame(self.root)
@@ -31,6 +42,7 @@ class App(object):
         self.packages_frame = tk.Frame(self.main_frame)
         self.packages_scroll = tk.Scrollbar(self.checkbuttons_frame)
         
+        #License adding
         self.license_label = tk.Label(self.main_frame, text="Place here your license:")
 
         self.license_frame = tk.Frame(self.main_frame)
@@ -43,6 +55,27 @@ class App(object):
         self.license_scroll.pack(side=tk.LEFT,
                                   fill=tk.Y)
 
+        #Convert frame
+        self.convert_frame = tk.Frame(self.main_frame)
+        self.convert_checkbox_frame = tk.Frame(self.convert_frame)
+        self.convert_radiobox_frame = tk.Frame(self.convert_frame)
+
+        self.convert_to = tk.StringVar()
+
+        self.convert_radio_label = tk.Label(self.convert_radiobox_frame, text='Convet to:')
+        self.convert_radio_do_not_convert = tk.Radiobutton(self.convert_radiobox_frame, text="Do not convert", variable=self.convert_to, value='dnc')
+        self.convert_radio_git = tk.Radiobutton(self.convert_radiobox_frame, text="Git", variable=self.convert_to, value='git')
+        self.convert_radio_hg = tk.Radiobutton(self.convert_radiobox_frame, text="Mercurial", variable=self.convert_to, value='hg')
+        self.convert_radio_do_not_convert.select()
+        
+        self.convert_radio_label.pack(anchor='w')
+        self.convert_radio_do_not_convert.pack(anchor='w')
+        self.convert_radio_git.pack(anchor='w')
+        self.convert_radio_hg.pack(anchor='w')
+        
+        self.convert_radiobox_frame.pack(anchor='w')
+
+        #Setting distribution name
         self.dist_name_frame = tk.Frame(self.main_frame)
         self.dist_name_label = tk.Label(self.dist_name_frame, text="Distribution name: ")
         self.dist_name_entry = tk.Entry(self.dist_name_frame)
@@ -70,14 +103,17 @@ class App(object):
         self.button_refresh.pack(side=tk.LEFT)
         self.button_next.pack(side=tk.LEFT)
         
+        #Packing stuff
         self.main_label.pack(side=tk.TOP, anchor='w')
         self.packages_frame.pack(side=tk.TOP, anchor='w')
         self.license_label.pack(side=tk.TOP, anchor='w')
-        self.license_frame.pack(side=tk.TOP)
+        self.license_frame.pack(side=tk.TOP, anchor='w')
+        self.convert_frame.pack(side=tk.TOP, anchor='w')
         self.dist_name_frame.pack(side=tk.LEFT)
         self.buttons_frame.pack(side=tk.TOP)
         
         self.main_frame.pack()
+        self.root.config(menu=self.menubar)
     
 
     def set_packages(self, packages_list):
@@ -145,7 +181,42 @@ class App(object):
         log_window.transient(self.root)
         log_window.grab_set()
         self.root.wait_window()
+    
+    def svn2git(self):
+        
+        is_svn_repo = False
 
+        while not is_svn_repo:
+            origin_path = tkFileDialog.askdirectory(parent=self.root,
+                                                    initialdir=default_target_path,
+                                                    title='Please select repository to convert')
+            
+            if not origin_path: #just check if cancel was pressed
+                return
+            
+            is_svn_repo = convert.is_svn_repo(origin_path)
+            if not is_svn_repo:
+                tkMessageBox.showwarning(message="This is not a valid svn repository")
+        
+        svn_committers = convert.get_svn_committers(origin_path)
+
+
+        target_path = tkFileDialog.askdirectory(parent=self.root,
+                                                initialdir=default_target_path,
+                                                title='Please select where you want to place your git repository')
+        
+        if not target_path:
+            return
+        
+
+        if convert.svn2git(origin_path, target_path):
+            tkMessageBox.showinfo(message="This is not a valid svn repository")
+        else:
+            tkMessageBox.showerror(message="This is not a valid svn repository")
+        
+
+
+        
 
 class LogBoard(object):
     def __init__(self, root):
