@@ -4,6 +4,8 @@ import tkFileDialog, tkMessageBox
 import os
 import shutil
 
+import tree
+
 from dist_creator import *
 import tests_runner
 
@@ -18,7 +20,7 @@ class App(object):
         
         self.root = root
 
-        self.packages_variables = {}
+        self.tree_view = None
                 
         self.main_frame = tk.Frame(self.root)
         
@@ -79,18 +81,14 @@ class App(object):
     
 
     def set_packages(self, packages_list):
-        if self.packages_variables:
-            for package in self.packages_variables.values():
-                package['button'].pack_forget()
-
-        self.packages_variables = {}
-        for package in packages_list:
-            var = tk.IntVar()
-            c = tk.Checkbutton(self.packages_frame, text=package, variable=var, anchor='w',)
-            var.set(1)
-            self.packages_variables.update( {package: {'var': var, 'button':c}}  ) 
-            c.pack(anchor='w')
-
+        
+        if self.tree_view:
+            self.tree_view.forget()
+    
+        self.tree_view = tree.CheckboxTree(self.packages_frame, 
+                                          items=packages_list,
+                                          height=400,
+                                          width=600)
     
     def event_find_packages(self):
         origin_path = tkFileDialog.askdirectory(parent=self.root,
@@ -98,7 +96,7 @@ class App(object):
                                                 title='Please select source directory')
         if origin_path:
             self.origin_path = origin_path
-            packages = get_flat_packages(self.origin_path)
+            packages = get_modules_tree(self.origin_path)[0]
             self.set_packages(packages)
         
     
