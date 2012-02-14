@@ -12,6 +12,7 @@ import convert
 
 root_path = "~"
 default_target_path = '~'
+committers_head = """#Edit commiters names and e-mails\n#Example: \n#aturing = aturing <aturing>\n#becames:\n#aturing = Alan Turing <alan@turing.org>"""
 
 class App(object):
 
@@ -200,7 +201,17 @@ class App(object):
         
         svn_committers = convert.get_svn_committers(origin_path)
 
+        
+        svn_commiters = committers_head + '\n\n' + svn_committers
 
+        committers_window = tk.Toplevel(self.root)
+        commiters_board = CommitersBoard(committers_window)
+        commiters_board.fill_board(svn_commiters)
+        committers_window.transient(self.root)
+        committers_window.grab_set()
+        self.root.wait_window()
+
+        import pdb; pdb.set_trace()
         target_path = tkFileDialog.askdirectory(parent=self.root,
                                                 initialdir=default_target_path,
                                                 title='Please select where you want to place your git repository')
@@ -213,9 +224,6 @@ class App(object):
             tkMessageBox.showinfo(message="This is not a valid svn repository")
         else:
             tkMessageBox.showerror(message="This is not a valid svn repository")
-        
-
-
         
 
 class LogBoard(object):
@@ -267,7 +275,60 @@ class LogBoard(object):
             if not tkMessageBox.askokcancel('Log not yet saved', 'Log file is not yet saved.\nDo you want to quit anyway?', parent=self.root):
                 return
         self.root.destroy()
+
+class CommitersBoard(object):
+    def __init__(self, root):
         
+        self.root = root
+        self.log_saved = False
+        
+        self.text_frame = tk.Frame(self.root )
+        self.text_board = tk.Text(self.text_frame, height=40, width=100 )
+        self.text_scroll = tk.Scrollbar(self.text_frame)
+        
+        self.text_board.config(yscrollcommand=self.text_scroll.set)
+        self.text_scroll.config(command=self.text_board.yview)
+        self.text_board.pack(side=tk.LEFT)
+        self.text_scroll.pack(side=tk.LEFT,
+                                  fill=tk.Y)
+
+        self.buttons_frame = tk.Frame(self.root)
+        self.button_cancel = tk.Button(self.buttons_frame,
+                                     text="Cancel",
+                                     command=self.event_cancel,
+                                     width=8)
+        self.button_continue = tk.Button(self.buttons_frame,
+                                     text="Continue",
+                                     command=self.event_continue,
+                                     width=8)
+        self.button_cancel.pack(side=tk.LEFT)
+        self.button_continue.pack(side=tk.LEFT)
+
+        
+        self.text_frame.pack()
+        self.buttons_frame.pack()
+    
+    def fill_board(self, text):
+        self.text_board.insert(1.0, text)
+    
+    def get_valid_board(self):
+        text = self.text_board.get(0.0, tk.END).split('\n')
+        output = '\n'.join([line.strip() for line in text if not line.strip().startswith('#')])
+        return output
+
+    def event_continue(self):
+        if not tkMessageBox.askyesno('Continue', 'Continue convertion?', parent=self.root):
+            return
+        
+        self.root.svn_commiters = self.get_valid_board()
+        self.root.destroy()
+    
+    def event_cancel(self):
+        if not tkMessageBox.askokcancel('Cancel', 'Cancel repository convertion?', parent=self.root):
+            return
+        self.root.destroy()
+
+
     
 if __name__=='__main__':
     root = tk.Tk()
