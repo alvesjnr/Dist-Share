@@ -1,5 +1,4 @@
-
-
+import Tix
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
 import os
@@ -199,7 +198,7 @@ class LogBoard(object):
         
     
 if __name__=='__main__':
-    root = tk.Tk()
+    root = Tix.Tk()
     app = App(root)
     root.mainloop()
 
