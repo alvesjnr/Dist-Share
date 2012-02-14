@@ -96,7 +96,7 @@ class App(object):
                                                 title='Please select source directory')
         if origin_path:
             self.origin_path = origin_path
-            packages = get_modules_tree(self.origin_path)[0]
+            packages = get_folder_tree(self.origin_path)[0]
             self.set_packages(packages)
         
     
