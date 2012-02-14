@@ -64,6 +64,8 @@ def create_copy(origin, destin, packages):
                     shutil.copy2(os.path.join(origin,f), os.path.join(destin,f))
                 except:
                     raise e
+            except shutil.Error as e:
+                sys.stderr.write(str(e.message))
 
 
 def add_license(root, text):
