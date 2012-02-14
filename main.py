@@ -28,7 +28,7 @@ class App(object):
         
         self.checkbuttons_frame = tk.Frame(self.root)
         
-        self.packages_frame = tk.Frame(self.main_frame)
+        self.packages_frame = tk.Frame(self.main_frame,height=400, width=600 )
         self.packages_scroll = tk.Scrollbar(self.checkbuttons_frame)
         
         self.license_label = tk.Label(self.main_frame, text="Place here your license:")
