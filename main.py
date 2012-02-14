@@ -7,7 +7,6 @@ import shutil
 from dist_creator import *
 import tests_runner
 
-
 root_path = "~"
 default_target_path = '~'
 
