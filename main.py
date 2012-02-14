@@ -108,6 +108,9 @@ class App(object):
 
         if not self.origin_path:
             return
+        
+        blah = self.tree_view.get_checked_items()
+        import pdb; pdb.set_trace()
 
         license = self.license_box.get(1.0, tk.END)
         raw_packages = [package['button']['text'] for package in self.packages_variables.values() if package['var'].get()]
