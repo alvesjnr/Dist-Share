@@ -20,11 +20,29 @@ class CreateCopyError(Exception):
     """Something wrong when copying"""
     message="Something wrong when copying"
 
+def get_folder_tree(root):
+    
+    root_name = root.split('/')[-1]
+    return ({root_name : get_folder_child(root,root)},{'meta':{'root_path':root}})
+
+
+def get_folder_child(name,root):
+    
+    folders_in_root = filter(lambda x : os.path.isdir(os.path.join(root,x)), os.listdir(root))
+    
+    here = {}
+    
+    for folder in folders_in_root:
+        here.update({folder:get_folder_child(folder, path.join(root,folder))})
+
+    return here
+
+
 def get_modules_tree(root):
 
     root_name = root.split('/')[-1]
     return ({root_name : get_package_child(root,root)},{'meta':{'root_path':root}})
-    
+
 
 def get_package_child(name,root):
 

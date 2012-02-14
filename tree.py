@@ -10,7 +10,10 @@ class CheckboxTree(object):
         self.all_items = self.cl.getselection()
 
     def make_list(self, items):
-        self.cl = Tix.CheckList(self.root, browsecmd=self.selectItem, width=self.width, height=self.height)
+        self.cl = Tix.CheckList(self.root, 
+                                browsecmd=self.selectItem, 
+                                width=self.width, 
+                                height=self.height)
         self.cl.pack(fill=Tix.BOTH)
         
         if items:
@@ -23,6 +26,7 @@ class CheckboxTree(object):
     def add_items(self, items, parent=''):
 
         for item in items:
+            item = item.replace('.','#')
             if parent:
                 name = '%s.%s' % (parent,item)
             else:
@@ -30,23 +34,31 @@ class CheckboxTree(object):
             self.cl.hlist.add(name, text=item)
             self.cl.setstatus(name, 'on')
 
-            if items[item]:
-                self.add_items(items[item], name)
+            if items[item.replace('#','.')]:
+                self.add_items(items[item.replace('#','.')], name)
 
     def selectItem(self, item):
         #do the propagation
-
         for i in self.all_items:
-            if i.startswith(item):
+            if isinstance(i, tuple):
+                if ' '.join(i).startswith(item):
+                    self.cl.setstatus(i, self.cl.getstatus(item))
+            elif i.startswith(item):
                 self.cl.setstatus(i, self.cl.getstatus(item))
     
     def forget(self):
         self.cl.forget()
 
     def get_checked_items(self):
-        return self.cl.getselection()
-
-
+        items = []
+        for item in self.cl.getselection():
+            if isinstance(item,str):
+                items.append(item.replace('.', '/').replace('#','.'))
+            elif isinstance(item,tuple):
+                items.append(' '.join(item).replace('.', '/').replace('#','.'))
+        return items
+            
+        #return [x.replace('.', '/').replace('#','.') for x in self.cl.getselection()]
 
 
 if __name__ == '__main__':
@@ -60,7 +72,7 @@ if __name__ == '__main__':
                     },
             }
     root = Tix.Tk()
-    frame = Tix.Frame(root)
+    frame = Tix.Frame(root, bg='white')
     tree = CheckboxTree(frame, items)
     frame.pack(fill=Tix.BOTH)
     root.update()
