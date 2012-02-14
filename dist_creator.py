@@ -21,7 +21,9 @@ class CreateCopyError(Exception):
     message="Something wrong when copying"
 
 def get_modules_tree(root):
-    return {root : get_package_child(root,root)}
+
+    root_name = root.split('/')[-1]
+    return ({root_name : get_package_child(root,root)},{'meta':{'root_path':root}})
     
 
 def get_package_child(name,root):
