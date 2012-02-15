@@ -156,8 +156,7 @@ def get_leaves(nodes, separator='/'):
     
     while nodes:
         node = nodes.pop(0)
-        if filter(lambda x : x.startswith(node+separator), nodes):
-            continue
-        leaves.append(node)
+        if not filter(lambda x : x.startswith(node+separator), nodes):
+            leaves.append(node)
     
     return leaves
