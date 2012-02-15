@@ -37,7 +37,7 @@ class CheckboxTree(object):
             self.cl.hlist.add(name, text=item)
             self.cl.setstatus(name, 'on')
 
-            if items[item.replace('#','.')]:
+            if items[item]:
                 self.add_items(items[item], name)
 
     def selectItem(self, item):
@@ -72,6 +72,7 @@ if __name__ == '__main__':
                      'blah':{},
                     },
             }
+            
     root = Tix.Tk()
     frame = Tix.Frame(root, bg='white')
     tree = CheckboxTree(frame, items)
