@@ -14,7 +14,8 @@ class CheckboxTree(object):
 
     def make_list(self, items):
         self.cl = Tix.CheckList(self.root, 
-                                browsecmd=self.selectItem, 
+                                browsecmd=self.selectItem,
+                                command=self.selectItem,
                                 width=self.width, 
                                 height=self.height)
         self.cl.pack(fill=Tix.BOTH)
@@ -41,13 +42,20 @@ class CheckboxTree(object):
                 self.add_items(items[item], name)
 
     def selectItem(self, item):
-        #do the propagation
+        status = self.cl.getstatus(item)
+        #do the top-bottom propagation
         for i in self.all_items:
             if isinstance(i, tuple):
                 if ' '.join(i).startswith(item+'.'):
-                    self.cl.setstatus(i, self.cl.getstatus(item))
+                    self.cl.setstatus(i, status)
             elif i.startswith(item+'.'):
-                self.cl.setstatus(i, self.cl.getstatus(item))
+                self.cl.setstatus(i, status)
+        
+        #do the bottom-up propagation
+        parent = '.'.join(item.split('.')[:-1])
+        while status == 'on' and parent and self.cl.getstatus(parent) == 'off':
+            self.cl.setstatus(parent, 'on')
+            parent = '.'.join(parent.split('.')[:-1])
     
     def forget(self):
         self.cl.forget()
@@ -72,7 +80,7 @@ if __name__ == '__main__':
                      'blah':{},
                     },
             }
-            
+
     root = Tix.Tk()
     frame = Tix.Frame(root, bg='white')
     tree = CheckboxTree(frame, items)
