@@ -109,12 +109,10 @@ class App(object):
         if not self.origin_path:
             return
         
-        blah = self.tree_view.get_checked_items()
-        import pdb; pdb.set_trace()
+        folders_to_copy = self.tree_view.get_checked_items()
 
         license = self.license_box.get(1.0, tk.END)
-        raw_packages = [package['button']['text'] for package in self.packages_variables.values() if package['var'].get()]
-
+        
         if not license.strip():
             if not tkMessageBox.askokcancel('License','No license found. Do you want to proceed anyway?'):
                 return
@@ -128,7 +126,9 @@ class App(object):
         if self.target_path:
             self.target_path = os.path.join(self.target_path, self.dist_name_entry.get())
             
-        if process_copy(self.origin_path, self.target_path, raw_packages, license):
+        copy = process_folders_copy(self.origin_path, self.target_path, folders_to_copy, license)
+
+        if copy:
             do_tests = tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?')
             if do_tests:
                 self.do_tests()
