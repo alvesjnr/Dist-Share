@@ -1,5 +1,8 @@
 import Tkinter as tk
 import Tix
+import os
+
+FOLDER_SEPARATOR = os.sep
 
 class CheckboxTree(object):
     def __init__(self, root, items={}, height=600, width=800):
@@ -26,24 +29,24 @@ class CheckboxTree(object):
     def add_items(self, items, parent=''):
 
         for item in items:
-            item = item.replace('.','#')
+            replaced_item = item.replace('.','#')
             if parent:
-                name = '%s.%s' % (parent,item)
+                name = '%s.%s' % (parent,replaced_item)
             else:
-                name = item
+                name = replaced_item
             self.cl.hlist.add(name, text=item)
             self.cl.setstatus(name, 'on')
 
             if items[item.replace('#','.')]:
-                self.add_items(items[item.replace('#','.')], name)
+                self.add_items(items[item], name)
 
     def selectItem(self, item):
         #do the propagation
         for i in self.all_items:
             if isinstance(i, tuple):
-                if ' '.join(i).startswith(item):
+                if ' '.join(i).startswith(item+'.'):
                     self.cl.setstatus(i, self.cl.getstatus(item))
-            elif i.startswith(item):
+            elif i.startswith(item+'.'):
                 self.cl.setstatus(i, self.cl.getstatus(item))
     
     def forget(self):
@@ -53,15 +56,15 @@ class CheckboxTree(object):
         items = []
         for item in self.cl.getselection():
             if isinstance(item,str):
-                items.append(item.replace('.', '/').replace('#','.'))
+                items.append(item.replace('.', FOLDER_SEPARATOR).replace('#','.'))
             elif isinstance(item,tuple):
-                items.append(' '.join(item).replace('.', '/').replace('#','.'))
+                items.append(' '.join(item).replace('.', FOLDER_SEPARATOR).replace('#','.'))
         return items
 
 
 if __name__ == '__main__':
     items = {'one':{'A':{},
-                    'B':False,
+                    'AAB':False,
                     },
              'two':{'has_more':{'1':None,
                                 '2':{},  #Empty node can be either None or {} or [] or False ...
