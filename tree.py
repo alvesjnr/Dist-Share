@@ -57,8 +57,6 @@ class CheckboxTree(object):
             elif isinstance(item,tuple):
                 items.append(' '.join(item).replace('.', '/').replace('#','.'))
         return items
-            
-        #return [x.replace('.', '/').replace('#','.') for x in self.cl.getselection()]
 
 
 if __name__ == '__main__':

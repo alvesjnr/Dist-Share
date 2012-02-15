@@ -150,3 +150,14 @@ def process_copy(origin_path, target_path, packages, raw_license):
         return True
     
     return False
+
+def get_leaves(nodes, separator='/'):
+    leaves = []
+    
+    while nodes:
+        node = nodes.pop(0)
+        if filter(lambda x : x.startswith(node+separator), nodes):
+            continue
+        leaves.append(node)
+    
+    return leaves
