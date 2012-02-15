@@ -161,7 +161,7 @@ def process_folders_copy(origin_path, target_path, folders_to_copy, raw_license)
         inter_nodes = get_leaves(folders_to_copy, mirror=True)
 
         copy_leaves(origin_path, target_path, leaves)
-        #copy_inter_nodes(origin_path, target_path, inter_nodes)
+        copy_inter_nodes(origin_path, target_path, inter_nodes)
         
         #add_license(target_path, raw_license)
 
@@ -172,6 +172,16 @@ def copy_leaves(origin_path, target_path, leaves):
     origin_location = FOLDER_SEPARATOR.join(origin_path.split(FOLDER_SEPARATOR)[:-1])
     for folder in leaves:
         shutil.copytree(os.path.join(origin_location,folder), os.path.join(target_path,folder))
+
+
+def copy_inter_nodes(origin_path, target_path, inter_nodes):
+    origin_location = FOLDER_SEPARATOR.join(origin_path.split(FOLDER_SEPARATOR)[:-1])
+
+    for node in inter_nodes:
+        isfile = lambda f : os.path.isfile( os.path.join(os.path.join(origin_location,node) ,f))
+        files = filter(isfile,os.listdir(os.path.join(origin_location,node)))
+        for f in files:
+            shutil.copy2(os.path.join(os.path.join(origin_location,node),f),os.path.join(target_path,node))
 
 
 def get_leaves(nodes, separator=FOLDER_SEPARATOR, mirror=False):
