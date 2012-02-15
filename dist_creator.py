@@ -163,7 +163,7 @@ def process_folders_copy(origin_path, target_path, folders_to_copy, raw_license)
         copy_leaves(origin_path, target_path, leaves)
         copy_inter_nodes(origin_path, target_path, inter_nodes)
         
-        #add_license(target_path, raw_license)
+        add_license(target_path, raw_license)
 
         return True
 
