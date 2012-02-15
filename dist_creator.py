@@ -15,6 +15,7 @@ comments = {'.py':{'begin':'"""', 'end':'"""'},
 
 extensions = [key for key in comments]
 DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
+FOLDER_SEPARATOR = os.sep
 
 class CreateCopyError(Exception):
     """Something wrong when copying"""
@@ -152,7 +153,28 @@ def process_copy(origin_path, target_path, packages, raw_license):
     return False
 
 
-def get_leaves(nodes, separator='/', mirror=False):
+def process_folders_copy(origin_path, target_path, folders_to_copy, raw_license):
+
+    if folders_to_copy:
+                
+        leaves = get_leaves(folders_to_copy)
+        inter_nodes = get_leaves(folders_to_copy, mirror=True)
+
+        copy_leaves(origin_path, target_path, leaves)
+        #copy_inter_nodes(origin_path, target_path, inter_nodes)
+        
+        #add_license(target_path, raw_license)
+
+        return True
+
+
+def copy_leaves(origin_path, target_path, leaves):
+    origin_location = FOLDER_SEPARATOR.join(origin_path.split(FOLDER_SEPARATOR)[:-1])
+    for folder in leaves:
+        shutil.copytree(os.path.join(origin_location,folder), os.path.join(target_path,folder))
+
+
+def get_leaves(nodes, separator=FOLDER_SEPARATOR, mirror=False):
 
     leaves = []
     nodes = nodes[:]
