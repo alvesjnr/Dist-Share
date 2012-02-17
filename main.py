@@ -25,6 +25,7 @@ class App(object):
         self.root = root
 
         self.tree_view = None
+        self.changed = False
 
         #Project issues
         self.project_name = None
@@ -35,7 +36,7 @@ class App(object):
         self.filemenu.add_command(label="Open Project", command=self.load_project)
         self.filemenu.add_command(label="Save Project", command=self.save_project)
         self.filemenu.add_command(label="Save Project As ...", command=self.save_project_as)
-        self.filemenu.add_command(label="Close Project", command=self.close_project)
+        self.filemenu.add_command(label="New Project", command=self.new_project)
         self.filemenu.add_separator()
         self.filemenu.add_command(label="Exit", command=self.root.quit)
         self.menubar.add_cascade(label="Project", menu=self.filemenu)
@@ -48,7 +49,6 @@ class App(object):
         self.checkbuttons_frame = tk.Frame(self.root)
         
         self.packages_frame = tk.Frame(self.main_frame,height=400, width=600 )
-        self.packages_scroll = tk.Scrollbar(self.checkbuttons_frame)
         
         self.license_label = tk.Label(self.main_frame, text="License:")
 
@@ -98,6 +98,8 @@ class App(object):
         
         self.main_frame.pack()
     
+    def change_function(self):
+        self.changed = True
 
     def set_packages(self, packages_list):
         
@@ -107,9 +109,11 @@ class App(object):
         self.tree_view = tree.CheckboxTree(self.packages_frame, 
                                           items=packages_list,
                                           height=400,
-                                          width=600)
+                                          width=600,
+                                          change_function=self.change_function)
     
     def event_find_packages(self):
+        self.changed = True
         origin_path = tkFileDialog.askdirectory(parent=self.root,
                                                 initialdir=root_path,
                                                 title='Please select source directory')
@@ -120,6 +124,7 @@ class App(object):
         
     
     def event_refresh(self):
+        self.changed = True
         for package in self.packages_variables.values():
             package['var'].set(1)
     
@@ -163,13 +168,34 @@ class App(object):
         log_window.transient(self.root)
         log_window.grab_set()
         self.root.wait_window()    
+    
 
+    def check_changes_to_continue(self):
+        """ 
+        Check if the project has unsaved changes.
+        Return True to continue action or False to abort
+        """
+        if self.changed:
+            save = tkMessageBox.askyesnocancel('New Project', 'This project have unsaved modifications. Do you want to save it before continue?')
+        
+        if save is None:
+            return False
+        elif save:
+            self.save_project()
+            tkMessageBox.showinfo('Project Saved', 'Your project was saved')
+        
+        return True
 
-    def close_project(self):
-        pass
 
     def new_project(self):
-        pass 
+
+        if self.check_changes_to_continue():
+
+            if self.tree_view:
+                self.tree_view.forget()
+            self.tree_view = None
+            self.project_name = None
+            self.project_file_path = None
 
     def save_project(self):
         
@@ -177,6 +203,8 @@ class App(object):
             self.save_project_as()
             return
         
+        self.changed = False
+
         project_struct = {'dist_file_version':DIST_FILE_VERSION,
                           'name':self.project_name,
                           'origin_path':self.origin_path,
@@ -188,6 +216,10 @@ class App(object):
         
 
     def load_project(self):
+
+        if not self.check_changes_to_continue():
+            return
+
         open_file = tkFileDialog.askopenfilename( defaultextension=".dist", parent=self.root)
 
         if not open_file:
@@ -216,7 +248,8 @@ class App(object):
 
         if not open_file:
             return
-        
+
+        self.changed = False
         self.project_file_path = open_file.name
         self.project_name = self.project_file_path.split(os.sep)[-1]
 

@@ -5,11 +5,12 @@ import os
 FOLDER_SEPARATOR = os.sep
 
 class CheckboxTree(object):
-    def __init__(self, root, items={}, height=600, width=800):
+    def __init__(self, root, items={}, height=600, width=800, change_function=None):
         self.root = root
         self.height = height
         self.width = width
         self.make_list(items)
+        self.change_function = change_function
         self.all_items = self.cl.getselection()
 
     def make_list(self, items):
@@ -57,6 +58,9 @@ class CheckboxTree(object):
         while status == 'on' and parent and self.cl.getstatus(parent) == 'off':
             self.cl.setstatus(parent, 'on')
             parent = '.'.join(parent.split('.')[:-1])
+        
+        if self.change_function:
+            self.change_function()
     
     def forget(self):
         self.cl.forget()
