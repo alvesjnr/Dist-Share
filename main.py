@@ -13,6 +13,7 @@ import tests_runner
 
 root_path = "~"
 default_target_path = '~'
+DIST_FILE_VERSION = 'v0'
 
 class App(object):
 
@@ -176,26 +177,36 @@ class App(object):
             self.save_project_as()
             return
         
-        project_struct = {'name':self.project_name,
+        project_struct = {'dist_file_version':DIST_FILE_VERSION,
+                          'name':self.project_name,
                           'origin_path':self.origin_path,
-                          'project_tree':self.tree_view.get_checked_items()}
+                          'unchecked_items':self.tree_view.get_checked_items(mode='off')}
 
         open_file = open(self.project_file_path, 'w')
         pickle.dump(project_struct, open_file)
         open_file.close()
         
-        
+
     def load_project(self):
-        open_file = tkFileDialog.asksaveasfile(mode='r', defaultextension=".dist", parent=self.root)
+        open_file = tkFileDialog.askopenfilename( defaultextension=".dist", parent=self.root)
 
         if not open_file:
             return
         
+        self.project_file_path = open_file
+        open_file = open(self.project_file_path, 'r')
         project_struct = pickle.loads(open_file.read())
+
+        if project_struct['dist_file_version'] != DIST_FILE_VERSION:
+            tkMessageBox.showerror('Invalid File', 'This project file is no longer supported')
+            return
 
         self.project_name = project_struct['name']
         self.origin_path = project_struct['origin_path']
-        #TODO: set project tree
+        
+        packages = get_folder_tree(self.origin_path)[0]
+        self.set_packages(packages)
+        self.tree_view.set_unchecked_items(items=project_struct['project_tree'])
 
         open_file.close()
         
@@ -209,9 +220,10 @@ class App(object):
         self.project_file_path = open_file.name
         self.project_name = self.project_file_path.split(os.sep)[-1]
 
-        project_struct = {'name':self.project_name,
+        project_struct = {'dist_file_version':DIST_FILE_VERSION,
+                          'name':self.project_name,
                           'origin_path':self.origin_path,
-                          'project_tree':self.tree_view.get_checked_items()}
+                          'unchecked_items':self.tree_view.get_checked_items(mode='off')}
         
         pickle.dump(project_struct, open_file)
 
