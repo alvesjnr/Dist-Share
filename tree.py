@@ -22,10 +22,11 @@ class CheckboxTree(object):
         
         if items:
             self.add_items(items)
-        self.cl.autosetmode()
-
-        for name in self.cl.getselection():
-            self.cl.close(name)
+        
+        #FIXME: closing buttons are checking boxes
+        #self.cl.autosetmode()
+        #for name in self.cl.getselection():
+            #self.cl.close(name)
     
     def add_items(self, items, parent=''):
 
@@ -70,7 +71,9 @@ class CheckboxTree(object):
         return items
     
     def set_unchecked_items(self, items):
-        pass
+        for item in items:
+            item = item.replace('.','#').replace(FOLDER_SEPARATOR,'.')
+            self.cl.setstatus(item, 'off')
 
 
 if __name__ == '__main__':
