@@ -32,13 +32,13 @@ class App(object):
 
         self.menubar = tk.Menu(self.root)
         self.filemenu = tk.Menu(self.menubar, tearoff=0)
-        self.filemenu.add_command(label="Open", command=self.load_project)
-        self.filemenu.add_command(label="Save", command=self.save_project)
-        self.filemenu.add_command(label="Save As ...", command=self.save_project_as)
-        self.filemenu.add_command(label="Close", command=self.close_project)
+        self.filemenu.add_command(label="Open Project", command=self.load_project)
+        self.filemenu.add_command(label="Save Project", command=self.save_project)
+        self.filemenu.add_command(label="Save Project As ...", command=self.save_project_as)
+        self.filemenu.add_command(label="Close Project", command=self.close_project)
         self.filemenu.add_separator()
         self.filemenu.add_command(label="Exit", command=self.root.quit)
-        self.menubar.add_cascade(label="File", menu=self.filemenu)
+        self.menubar.add_cascade(label="Project", menu=self.filemenu)
         self.root.config(menu=self.menubar)
                 
         self.main_frame = tk.Frame(self.root)
@@ -73,7 +73,7 @@ class App(object):
         self.buttons_frame = tk.Frame(self.main_frame)
         
         self.button_find = tk.Button(self.buttons_frame, 
-                                     text="Open",
+                                     text="Load",
                                      command=self.event_find_packages,
                                      width=8)
         self.button_refresh = tk.Button(self.buttons_frame,
