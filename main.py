@@ -206,7 +206,7 @@ class App(object):
         
         packages = get_folder_tree(self.origin_path)[0]
         self.set_packages(packages)
-        self.tree_view.set_unchecked_items(items=project_struct['project_tree'])
+        self.tree_view.set_unchecked_items(items=project_struct['unchecked_items'])
 
         open_file.close()
         
