@@ -60,17 +60,22 @@ class CheckboxTree(object):
     def forget(self):
         self.cl.forget()
 
-    def get_checked_items(self):
+    def get_checked_items(self, mode='on'):
         items = []
-        for item in self.cl.getselection():
+        for item in self.cl.getselection(mode=mode):
             if isinstance(item,str):
                 items.append(item.replace('.', FOLDER_SEPARATOR).replace('#','.'))
             elif isinstance(item,tuple):
                 items.append(' '.join(item).replace('.', FOLDER_SEPARATOR).replace('#','.'))
         return items
+    
+    def set_unchecked_items(self, items):
+        pass
 
 
 if __name__ == '__main__':
+
+    """just for test and exemplification"""
     items = {'one':{'A':{},
                     'AAB':False,
                     },
