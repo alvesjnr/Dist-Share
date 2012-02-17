@@ -1,8 +1,10 @@
 import Tix
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
+
 import os
 import shutil
+import pickle 
 
 import tree
 
@@ -17,10 +19,26 @@ class App(object):
     origin_path = ''
     
     def __init__(self,root):
+
         
         self.root = root
 
         self.tree_view = None
+
+        #Project issues
+        self.project_name = None
+        self.project_file_path = None #path of the file .dist
+
+        self.menubar = tk.Menu(self.root)
+        self.filemenu = tk.Menu(self.menubar, tearoff=0)
+        self.filemenu.add_command(label="Open", command=self.load_project)
+        self.filemenu.add_command(label="Save", command=self.save_project)
+        self.filemenu.add_command(label="Save As ...", command=self.save_project_as)
+        self.filemenu.add_command(label="Close", command=self.close_project)
+        self.filemenu.add_separator()
+        self.filemenu.add_command(label="Exit", command=self.root.quit)
+        self.menubar.add_cascade(label="File", menu=self.filemenu)
+        self.root.config(menu=self.menubar)
                 
         self.main_frame = tk.Frame(self.root)
         
@@ -143,7 +161,61 @@ class App(object):
         log_board.fill_board(output_log)
         log_window.transient(self.root)
         log_window.grab_set()
-        self.root.wait_window()
+        self.root.wait_window()    
+
+
+    def close_project(self):
+        pass
+
+    def new_project(self):
+        pass 
+
+    def save_project(self):
+        
+        if not self.project_name:
+            self.save_project_as()
+            return
+        
+        project_struct = {'name':self.project_name,
+                          'origin_path':self.origin_path,
+                          'project_tree':self.tree_view.get_checked_items()}
+
+        open_file = open(self.project_file_path, 'w')
+        pickle.dump(project_struct, open_file)
+        open_file.close()
+        
+        
+    def load_project(self):
+        open_file = tkFileDialog.asksaveasfile(mode='r', defaultextension=".dist", parent=self.root)
+
+        if not open_file:
+            return
+        
+        project_struct = pickle.loads(open_file.read())
+
+        self.project_name = project_struct['name']
+        self.origin_path = project_struct['origin_path']
+        #TODO: set project tree
+
+        open_file.close()
+        
+    
+    def save_project_as(self):
+        open_file = tkFileDialog.asksaveasfile(mode='w', defaultextension=".dist", parent=self.root)
+
+        if not open_file:
+            return
+        
+        self.project_file_path = open_file.name
+        self.project_name = self.project_file_path.split(os.sep)[-1]
+
+        project_struct = {'name':self.project_name,
+                          'origin_path':self.origin_path,
+                          'project_tree':self.tree_view.get_checked_items()}
+        
+        pickle.dump(project_struct, open_file)
+
+        open_file.close()
 
 
 class LogBoard(object):
@@ -195,7 +267,6 @@ class LogBoard(object):
             if not tkMessageBox.askokcancel('Log not yet saved', 'Log file is not yet saved.\nDo you want to quit anyway?', parent=self.root):
                 return
         self.root.destroy()
-        
     
 if __name__=='__main__':
     root = Tix.Tk()
