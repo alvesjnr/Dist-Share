@@ -20,7 +20,7 @@ class CheckboxTree(object):
                                 browsecmd=self.selectItem,
                                 command=self.selectItem,
                                 width=self.width, 
-                                height=self.height)
+                                height=self.height,)
         self.cl.pack(fill=Tix.BOTH)
         
         if items:
