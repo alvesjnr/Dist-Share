@@ -125,7 +125,7 @@ class DiffBoard(object):
     
     def set_removed_colors(self, removed):
         for i in removed:
-            self.text_board_l.itemconfig(i, bg='red')
+            self.text_board_l.itemconfig(i, bg='lightred')
     
     def set_diff_board(self, original=None, copy=None):
         original = original or tkFileDialog.askdirectory() 
