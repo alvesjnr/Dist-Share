@@ -54,7 +54,6 @@ class DiffBoard(object):
     def __init__(self, root):
         
         self.root = root
-        self.log_saved = False
         
         self.labels_frame = tk.Frame(self.root)
 
@@ -84,15 +83,10 @@ class DiffBoard(object):
                                   fill=tk.Y)
         
         self.buttons_frame = tk.Frame(self.root)
-        self.button_save = tk.Button(self.buttons_frame,
-                                     text="Save",
-                                     command=self.event_save_log,
-                                     width=8)
         self.button_quit = tk.Button(self.buttons_frame,
                                      text="Quit",
                                      command=self.event_quit,
                                      width=8)
-        self.button_save.pack(side=tk.LEFT)
         self.button_quit.pack(side=tk.LEFT)
 
         self.labels_frame.pack()
@@ -108,20 +102,8 @@ class DiffBoard(object):
             for number,line in enumerate(text):
                 self.text_board_l.insert(number, line)
                 self.text_board_l.itemconfig(number, bg='#00b2ee')
-
-    def event_save_log(self):
-        fout = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt", parent=self.root)
-
-        if fout:
-            log = unicode(self.text_board.get(0.0,tk.END))
-            fout.write(log)
-            fout.close()
-            self.log_saved = True 
     
     def event_quit(self):
-        if not self.log_saved:
-            if not tkMessageBox.askokcancel('Log not yet saved', 'Log file is not yet saved.\nDo you want to quit anyway?', parent=self.root):
-                return
         self.root.destroy()
     
     def set_removed_colors(self, removed):
@@ -137,7 +119,7 @@ class DiffBoard(object):
         if not copy:
             return
         
-        original = get_files_tree(original)
+        original = get_files_tree(original, output=[])
         copy = get_files_tree(copy, output=[]) #FIXME: why should I have to pass output if it is defined on function signature?
         removed_lines = get_removed_lines([t[0] for t in original],[t[0] for t in copy])
 
