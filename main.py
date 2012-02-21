@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import Tix
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
@@ -11,9 +13,10 @@ import tree
 from dist_creator import *
 import tests_runner
 
-root_path = "~"
-default_target_path = '~'
+ROOT_PATH = "~"
+DEFAULT_TARGET_PATH = '~'
 DIST_FILE_VERSION = 'v0'
+FOLDER_SEPARATOR = os.sep
 
 class App(object):
 
@@ -115,7 +118,7 @@ class App(object):
     def event_find_packages(self):
         self.changed = True
         origin_path = tkFileDialog.askdirectory(parent=self.root,
-                                                initialdir=root_path,
+                                                initialdir=ROOT_PATH,
                                                 title='Please select source directory')
         if origin_path:
             self.origin_path = origin_path
@@ -142,7 +145,7 @@ class App(object):
             license = ''
 
         target_path = tkFileDialog.askdirectory(parent=self.root,
-                                                initialdir=default_target_path,
+                                                initialdir=DEFAULT_TARGET_PATH,
                                                 title='Please select target directory')
     
         if not target_path:
@@ -256,7 +259,7 @@ class App(object):
 
         self.changed = False
         self.project_file_path = open_file.name
-        self.project_name = self.project_file_path.split(os.sep)[-1]
+        self.project_name = self.project_file_path.split(FOLDER_SEPARATOR)[-1]
 
         project_struct = {'dist_file_version':DIST_FILE_VERSION,
                           'project_name':self.project_name,
