@@ -11,6 +11,7 @@ import pickle
 import tree
 
 from dist_creator import *
+from difftool import DiffBoard
 import tests_runner
 
 ROOT_PATH = "~"
@@ -42,9 +43,16 @@ class App(object):
         self.filemenu.add_command(label="New Project", command=self.new_project)
         self.filemenu.add_separator()
         self.filemenu.add_command(label="Exit", command=self.root.quit)
-        self.menubar.add_cascade(label="Project", menu=self.filemenu)
-        self.root.config(menu=self.menubar)
+
+        #Tools menu
+        self.toolsmenu = tk.Menu(self.menubar, tearoff=0)
+        self.toolsmenu.add_command(label="Diff", command=self.diff_tool)
                 
+        #packing menus
+        self.menubar.add_cascade(label="Project", menu=self.filemenu)
+        self.menubar.add_cascade(label="Tools", menu=self.toolsmenu)
+        self.root.config(menu=self.menubar)
+
         self.main_frame = tk.Frame(self.root)
         
         self.main_label = tk.Label(self.main_frame, text="Select the modules for your distribution:")
@@ -156,6 +164,8 @@ class App(object):
 
         if copy and tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?'):
                 self.do_tests()
+        
+        self.diff_tool(self.origin_path,self.target_path)
         
 
     def do_tests(self):
@@ -273,11 +283,14 @@ class App(object):
         open_file.close()
     
 
-    def diff_tool(self):
-
-        pass
+    def diff_tool(self, original=None, copy=None):
         
-
+        diff_window = tk.Toplevel(self.root)
+        diff_board = DiffBoard(diff_window)
+        diff_board.set_diff_board(original,copy)
+        diff_window.transient(self.root)
+        diff_window.grab_set()
+        
 
 class LogBoard(object):
     def __init__(self, root):
