@@ -134,29 +134,27 @@ class App(object):
             return
         
         folders_to_copy = self.tree_view.get_checked_items()
-
         license = self.license_box.get(1.0, tk.END)
         
         if not license.strip():
             if not tkMessageBox.askokcancel('License','No license found. Do you want to proceed anyway?'):
                 return
-            else:
-                license = ''
+            license = ''
 
-        self.target_path = tkFileDialog.askdirectory(parent=self.root,
-                                                     initialdir=default_target_path,
-                                                     title='Please select target directory')
+        target_path = tkFileDialog.askdirectory(parent=self.root,
+                                                initialdir=default_target_path,
+                                                title='Please select target directory')
+    
+        if not target_path:
+            return
         
-        if self.target_path:
-            self.target_path = os.path.join(self.target_path, self.dist_name_entry.get())
-            
+        self.target_path = os.path.join(target_path, self.dist_name_entry.get())            
         copy = process_folders_copy(self.origin_path, self.target_path, folders_to_copy, license)
 
-        if copy:
-            do_tests = tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?')
-            if do_tests:
+        if copy and tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?'):
                 self.do_tests()
         
+
     def do_tests(self):
 
         test_files = tests_runner.list_tests_from_directory(self.target_path)        
@@ -178,11 +176,11 @@ class App(object):
         if self.changed:
             save = tkMessageBox.askyesnocancel('New Project', 'This project have unsaved modifications. Do you want to save it before continue?')
         
-        if save is None:
-            return False
-        elif save:
-            self.save_project()
-            tkMessageBox.showinfo('Project Saved', 'Your project was saved')
+            if save is None:
+                return False
+            elif save:
+                self.save_project()
+                tkMessageBox.showinfo('Project Saved', 'Your project was saved')
         
         return True
 
@@ -196,6 +194,9 @@ class App(object):
             self.tree_view = None
             self.project_name = None
             self.project_file_path = None
+            self.dist_name_entry.delete(0,tk.END)
+            self.license_box.delete(1.0,tk.END)
+            return True
 
     def save_project(self):
         
@@ -206,9 +207,11 @@ class App(object):
         self.changed = False
 
         project_struct = {'dist_file_version':DIST_FILE_VERSION,
-                          'name':self.project_name,
+                          'project_name':self.project_name,
                           'origin_path':self.origin_path,
-                          'unchecked_items':self.tree_view.get_checked_items(mode='off')}
+                          'unchecked_items':self.tree_view.get_checked_items(mode='off'),
+                          'distribution_name':self.dist_name_entry.get(),
+                          'license':self.license_box.get(1.0, tk.END),}
 
         open_file = open(self.project_file_path, 'w')
         pickle.dump(project_struct, open_file)
@@ -217,7 +220,7 @@ class App(object):
 
     def load_project(self):
 
-        if not self.check_changes_to_continue():
+        if not self.new_project():
             return
 
         open_file = tkFileDialog.askopenfilename( defaultextension=".dist", parent=self.root)
@@ -233,8 +236,10 @@ class App(object):
             tkMessageBox.showerror('Invalid File', 'This project file is no longer supported')
             return
 
-        self.project_name = project_struct['name']
+        self.project_name = project_struct['project_name']
         self.origin_path = project_struct['origin_path']
+        self.dist_name_entry.insert(0, project_struct['distribution_name'])
+        self.license_box.insert(1.0, project_struct['license'])
         
         packages = get_folder_tree(self.origin_path)[0]
         self.set_packages(packages)
@@ -254,9 +259,11 @@ class App(object):
         self.project_name = self.project_file_path.split(os.sep)[-1]
 
         project_struct = {'dist_file_version':DIST_FILE_VERSION,
-                          'name':self.project_name,
+                          'project_name':self.project_name,
                           'origin_path':self.origin_path,
-                          'unchecked_items':self.tree_view.get_checked_items(mode='off')}
+                          'unchecked_items':self.tree_view.get_checked_items(mode='off'),
+                          'distribution_name':self.dist_name_entry.get(),
+                          'license':self.license_box.get(1.0, tk.END),}
         
         pickle.dump(project_struct, open_file)
 
