@@ -6,8 +6,9 @@ import tkFileDialog
 
 import os
 
-def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=[], fl_root=None):
-    
+def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=None, fl_root=None):
+    if output is None: output = []
+
     if level==0:
         output.append(root)
         fl_root = root.split(os.sep)[-1]
@@ -64,7 +65,7 @@ class DiffBoard(object):
         tk.Label(self.label_copy, text='Copy').pack()
         self.label_original.pack(side=tk.LEFT)
         self.label_copy.pack(side=tk.LEFT)
-        #TODO: change textboard to listbox
+
         self.text_frame = tk.Frame(self.root )
         self.text_board_l = tk.Listbox(self.text_frame, height=40, width=50 )
         self.text_board_r = tk.Listbox(self.text_frame, height=40, width=50 )
@@ -113,14 +114,16 @@ class DiffBoard(object):
     def set_diff_board(self, original=None, copy=None):
         original = original or tkFileDialog.askdirectory() 
         if not original:
+            self.event_quit()
             return
 
         copy = copy or tkFileDialog.askdirectory()
         if not copy:
+            self.event_quit()
             return
         
-        original = get_files_tree(original, output=[])
-        copy = get_files_tree(copy, output=[]) #FIXME: why should I have to pass output if it is defined on function signature?
+        original = get_files_tree(original)
+        copy = get_files_tree(copy) #FIXME: why should I have to pass output if it is defined on function signature?
         removed_lines = get_removed_lines([t[0] for t in original],[t[0] for t in copy])
 
         self.fill_board('l',(t[1] for t in original))

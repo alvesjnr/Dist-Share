@@ -47,6 +47,7 @@ class App(object):
         #Tools menu
         self.toolsmenu = tk.Menu(self.menubar, tearoff=0)
         self.toolsmenu.add_command(label="Diff", command=self.diff_tool)
+        self.toolsmenu.add_command(label="Tests", command=self.tests_tool)
                 
         #packing menus
         self.menubar.add_cascade(label="Project", menu=self.filemenu)
@@ -168,18 +169,6 @@ class App(object):
             self.do_tests()
         
         
-
-    def do_tests(self):
-
-        test_files = tests_runner.list_tests_from_directory(self.target_path)        
-        output_log = tests_runner.run_tests(test_files)
-
-        log_window = tk.Toplevel(self.root)
-        log_board = LogBoard(log_window)
-        log_board.fill_board(output_log)
-        log_window.transient(self.root)
-        log_window.grab_set()
-        self.root.wait_window()    
     
 
     def check_changes_to_continue(self):
@@ -290,6 +279,30 @@ class App(object):
         diff_board.set_diff_board(original,copy)
         diff_window.transient(self.root)
         diff_window.grab_set()
+    
+    def tests_tool(self):
+        testdir = tkFileDialog.askdirectory()
+
+        if testdir:
+            test_files = tests_runner.list_tests_from_directory(testdir)        
+            output_log = tests_runner.run_tests(test_files)
+
+            log_window = tk.Toplevel(self.root)
+            log_board = LogBoard(log_window)
+            log_board.fill_board(output_log)
+            log_window.transient(self.root)
+            log_window.grab_set()
+
+    def do_tests(self):
+
+        test_files = tests_runner.list_tests_from_directory(self.target_path)        
+        output_log = tests_runner.run_tests(test_files)
+
+        log_window = tk.Toplevel(self.root)
+        log_board = LogBoard(log_window)
+        log_board.fill_board(output_log)
+        log_window.transient(self.root)
+        log_window.grab_set()        
         
 
 class LogBoard(object):
