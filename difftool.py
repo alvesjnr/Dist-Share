@@ -10,19 +10,20 @@ def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=[
     files = os.listdir(root)
     stack_on_level[level] = True
     for f in files:
+        line_output = ''
         if not show_hidden and f.startswith('.'):
             continue
         for i in range(level):
             if i != level:
                 if stack_on_level[i]:
-                    output.append('│ ')
+                    line_output += '│ '
                 else:
-                    print output.append('  ')
+                    line_output += '  '
         if f==files[-1]:
-            output.append('└─ '+f)
+            output.append(line_output+'└─ '+f)
             stack_on_level[level] = False
         else:
-            output.append('├─ '+f)
+            output.append(line_output+'├─ '+f)
         
         if os.path.isdir(os.path.join(root,f)):
             get_files_tree(os.path.join(root,f),level=level+1, stack_on_level=stack_on_level, output=output)
