@@ -27,7 +27,6 @@ def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=[
 
         filename = os.path.join(root,f)
         filename = filename.split(fl_root)
-        print fl_root
         if len(filename) > 1:
             filename = fl_root.join(filename[1:])
         else:
@@ -68,8 +67,8 @@ class DiffBoard(object):
         self.label_copy.pack(side=tk.LEFT)
         #TODO: change textboard to listbox
         self.text_frame = tk.Frame(self.root )
-        self.text_board_l = tk.Listbox(self.text_frame, height=40, width=60 )
-        self.text_board_r = tk.Listbox(self.text_frame, height=40, width=60 )
+        self.text_board_l = tk.Listbox(self.text_frame, height=40, width=50 )
+        self.text_board_r = tk.Listbox(self.text_frame, height=40, width=50 )
         self.text_scroll_l = tk.Scrollbar(self.text_frame)
         self.text_scroll_r = tk.Scrollbar(self.text_frame)
         
