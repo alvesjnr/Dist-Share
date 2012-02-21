@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import Tkinter as tk
+import tkMessageBox
+import tkFileDialog
+
 import os
 
-def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=[]):
+def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=[], fl_root=None):
     
     if level==0:
-        print root
+        output.append(root)
+        fl_root = root.split(os.sep)[-1]
 
     files = os.listdir(root)
     stack_on_level[level] = True
@@ -19,16 +24,131 @@ def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=[
                     line_output += '│ '
                 else:
                     line_output += '  '
+
+        filename = os.path.join(root,f)
+        filename = filename.split(fl_root)
+        print fl_root
+        if len(filename) > 1:
+            filename = fl_root.join(filename[1:])
+        else:
+            filename = '.'
+
         if f==files[-1]:
-            output.append(line_output+'└─ '+f)
+            output.append((filename,line_output+'└─ '+f))
             stack_on_level[level] = False
         else:
-            output.append(line_output+'├─ '+f)
+            output.append((filename,line_output+'├─ '+f))
         
         if os.path.isdir(os.path.join(root,f)):
-            get_files_tree(os.path.join(root,f),level=level+1, stack_on_level=stack_on_level, output=output)
-    return output
+            get_files_tree(os.path.join(root,f),level=level+1, stack_on_level=stack_on_level, show_hidden=False, output=output, fl_root=fl_root)
+    
+    if level==0:
+        return output
+
+def get_removed_lines(original,copy):
+    for number,line in enumerate(original):
+        if line not in copy:
+            yield number
+
+
+class DiffBoard(object):
+    def __init__(self, root):
+        
+        self.root = root
+        self.log_saved = False
+        
+        self.labels_frame = tk.Frame(self.root)
+
+        self.label_original = tk.Frame(self.labels_frame)
+        self.label_copy = tk.Frame(self.labels_frame)
+
+        tk.Label(self.label_original, text='Original Project').pack()
+        tk.Label(self.label_copy, text='Copy').pack()
+        self.label_original.pack(side=tk.LEFT)
+        self.label_copy.pack(side=tk.LEFT)
+        #TODO: change textboard to listbox
+        self.text_frame = tk.Frame(self.root )
+        self.text_board_l = tk.Listbox(self.text_frame, height=40, width=60 )
+        self.text_board_r = tk.Listbox(self.text_frame, height=40, width=60 )
+        self.text_scroll_l = tk.Scrollbar(self.text_frame)
+        self.text_scroll_r = tk.Scrollbar(self.text_frame)
+        
+        self.text_board_l.config(yscrollcommand=self.text_scroll_l.set)
+        self.text_scroll_l.config(command=self.text_board_l.yview)
+        self.text_board_r.config(yscrollcommand=self.text_scroll_r.set)
+        self.text_scroll_r.config(command=self.text_board_r.yview)
+        self.text_board_l.pack(side=tk.LEFT)
+        self.text_scroll_l.pack(side=tk.LEFT,
+                                  fill=tk.Y)
+        self.text_board_r.pack(side=tk.LEFT)
+        self.text_scroll_r.pack(side=tk.LEFT,
+                                  fill=tk.Y)
+        
+        self.buttons_frame = tk.Frame(self.root)
+        self.button_save = tk.Button(self.buttons_frame,
+                                     text="Save",
+                                     command=self.event_save_log,
+                                     width=8)
+        self.button_quit = tk.Button(self.buttons_frame,
+                                     text="Quit",
+                                     command=self.event_quit,
+                                     width=8)
+        self.button_save.pack(side=tk.LEFT)
+        self.button_quit.pack(side=tk.LEFT)
+
+        self.labels_frame.pack()
+        self.text_frame.pack()
+        self.buttons_frame.pack()
+    
+    def fill_board(self, board, text):
+        if board=='r':
+            for number,line in enumerate(text):
+                self.text_board_r.insert(number, line)
+        elif board=='l':
+            for number,line in enumerate(text):
+                self.text_board_l.insert(number, line)
+
+    def event_save_log(self):
+        fout = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt", parent=self.root)
+
+        if fout:
+            log = unicode(self.text_board.get(0.0,tk.END))
+            fout.write(log)
+            fout.close()
+            self.log_saved = True 
+    
+    def event_quit(self):
+        if not self.log_saved:
+            if not tkMessageBox.askokcancel('Log not yet saved', 'Log file is not yet saved.\nDo you want to quit anyway?', parent=self.root):
+                return
+        self.root.destroy()
+    
+    def set_removed_colors(self, removed):
+        for i in removed:
+            self.text_board_l.itemconfig(i, bg='red')
+    
+    def set_diff_board(self, original=None, copy=None):
+        original = original or tkFileDialog.askdirectory() 
+        if not original:
+            return
+
+        copy = copy or tkFileDialog.askdirectory()
+        if not copy:
+            return
+        
+        original = get_files_tree(original)
+        copy = get_files_tree(copy, output=[]) #FIXME: why should I have to pass output if it is defined on function signature?
+        removed_lines = get_removed_lines([t[0] for t in original],[t[0] for t in copy])
+        import pdb; pdb.set_trace()
+        self.fill_board('l',(t[1] for t in original))
+        self.fill_board('r',(t[1] for t in copy))
+        self.set_removed_colors(removed_lines)
+
 
 if __name__=='__main__':
-    for i in get_files_tree('.', show_hidden=True):
-        print i
+    
+    root = tk.Tk()
+    app = DiffBoard(root)
+    app.set_diff_board('/home/antonio/Projects/dist_project', '/tmp/catapulta/dist_project')
+    root.mainloop()
+
