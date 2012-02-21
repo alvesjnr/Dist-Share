@@ -271,6 +271,12 @@ class App(object):
         pickle.dump(project_struct, open_file)
 
         open_file.close()
+    
+
+    def diff_tool(self):
+
+        pass
+        
 
 
 class LogBoard(object):
