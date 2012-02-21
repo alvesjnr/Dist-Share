@@ -280,7 +280,6 @@ class App(object):
                           'license':self.license_box.get(1.0, tk.END),}
         
         pickle.dump(project_struct, open_file)
-
         open_file.close()
     
 
