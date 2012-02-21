@@ -277,7 +277,7 @@ class App(object):
                           'origin_path':self.origin_path,
                           'unchecked_items':self.tree_view.get_checked_items(mode='off'),
                           'distribution_name':self.dist_name_entry.get(),
-                          'license':self.license_box.get(1.0, tk.END),}
+                          'license':self.license_box.get(1.0, tk.END)}
         
         pickle.dump(project_struct, open_file)
         open_file.close()
