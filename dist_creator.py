@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys
 import pkgutil
 import os
@@ -17,9 +19,11 @@ extensions = [key for key in comments]
 DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
 FOLDER_SEPARATOR = os.sep
 
+
 class CreateCopyError(Exception):
     """Something wrong when copying"""
     message="Something wrong when copying"
+
 
 def get_folder_tree(root):
     
@@ -39,7 +43,7 @@ def get_folder_child(name,root):
     return here
 
 
-def get_modules_tree(root):
+def get_package_tree(root):
 
     root_name = root.split('/')[-1]
     return ({root_name : get_package_child(root,root)},{'meta':{'root_path':root}})
@@ -136,6 +140,7 @@ def process_license(license, extension):
     else:
         return comment_begin + license + comment_end + "\n\n"
         
+
 def process_copy(origin_path, target_path, packages, raw_license):
 
     if packages:
