@@ -162,10 +162,11 @@ class App(object):
         self.target_path = os.path.join(target_path, self.dist_name_entry.get())            
         copy = process_folders_copy(self.origin_path, self.target_path, folders_to_copy, license)
 
-        if copy and tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?'):
-                self.do_tests()
-        
         self.diff_tool(self.origin_path,self.target_path)
+        
+        if copy and tkMessageBox.askyesno(message='Copy finished\nDo you want to scan for tests?'):
+            self.do_tests()
+        
         
 
     def do_tests(self):
