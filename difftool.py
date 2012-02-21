@@ -104,9 +104,11 @@ class DiffBoard(object):
         if board=='r':
             for number,line in enumerate(text):
                 self.text_board_r.insert(number, line)
+                self.text_board_r.itemconfig(number, bg='#00b2ee')
         elif board=='l':
             for number,line in enumerate(text):
                 self.text_board_l.insert(number, line)
+                self.text_board_l.itemconfig(number, bg='#00b2ee')
 
     def event_save_log(self):
         fout = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt", parent=self.root)
@@ -125,7 +127,7 @@ class DiffBoard(object):
     
     def set_removed_colors(self, removed):
         for i in removed:
-            self.text_board_l.itemconfig(i, bg='lightred')
+            self.text_board_l.itemconfig(i, bg='#EE3B3B')
     
     def set_diff_board(self, original=None, copy=None):
         original = original or tkFileDialog.askdirectory() 
@@ -139,7 +141,7 @@ class DiffBoard(object):
         original = get_files_tree(original)
         copy = get_files_tree(copy, output=[]) #FIXME: why should I have to pass output if it is defined on function signature?
         removed_lines = get_removed_lines([t[0] for t in original],[t[0] for t in copy])
-        import pdb; pdb.set_trace()
+
         self.fill_board('l',(t[1] for t in original))
         self.fill_board('r',(t[1] for t in copy))
         self.set_removed_colors(removed_lines)
