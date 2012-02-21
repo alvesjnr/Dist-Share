@@ -2,7 +2,7 @@
 
 import os
 
-def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False):
+def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=[]):
     
     if level==0:
         print root
@@ -15,17 +15,19 @@ def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False):
         for i in range(level):
             if i != level:
                 if stack_on_level[i]:
-                    print '│ ',
+                    output.append('│ ')
                 else:
-                    print '  ',
+                    print output.append('  ')
         if f==files[-1]:
-            print '└─ '+f
+            output.append('└─ '+f)
             stack_on_level[level] = False
         else:
-            print '├─ '+f
+            output.append('├─ '+f)
         
         if os.path.isdir(os.path.join(root,f)):
-            get_files_tree(os.path.join(root,f),level=level+1, stack_on_level=stack_on_level)
+            get_files_tree(os.path.join(root,f),level=level+1, stack_on_level=stack_on_level, output=output)
+    return output
 
 if __name__=='__main__':
-    get_files_tree('.', show_hidden=True)
+    for i in get_files_tree('.', show_hidden=True):
+        print i
