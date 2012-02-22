@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import Tkinter as tk
-import thread
-import time
 import Tix
 import os
 
