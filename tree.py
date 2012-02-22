@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import Tkinter as tk
+import thread
+import time
 import Tix
 import os
 
@@ -8,6 +10,7 @@ FOLDER_SEPARATOR = os.sep
 
 class CheckboxTree(object):
     def __init__(self, root, items={}, height=600, width=800, change_function=None):
+        self.odd = True
         self.root = root
         self.height = height
         self.width = width
@@ -15,22 +18,38 @@ class CheckboxTree(object):
         self.change_function = change_function
         self.all_items = self.cl.getselection()
 
+
     def make_list(self, items):
         self.cl = Tix.CheckList(self.root, 
                                 browsecmd=self.selectItem,
                                 command=self.selectItem,
                                 width=self.width, 
                                 height=self.height,)
+        self.cl.hlist.configure(indicatorcmd=self.colapse,
+                                selectforeground='black')
         self.cl.pack(fill=Tix.BOTH)
         
         if items:
             self.add_items(items)
         
-        #FIXME: closing buttons are checking boxes
-        #self.cl.autosetmode()
-        #for name in self.cl.getselection():
-            #self.cl.close(name)
+        self.cl.autosetmode()
+        for name in self.cl.getselection():
+            self.cl.close(name)
     
+    def colapse(self,a):
+        if self.odd:
+            self.odd = False
+            return
+        self.odd=True
+
+        mode = self.cl.getmode(a)
+
+        if mode == 'close':
+            self.cl.close(a)
+        elif mode == 'open':
+            self.cl.open(a)
+    
+
     def add_items(self, items, parent=''):
 
         for item in items:
