@@ -97,6 +97,10 @@ class CheckboxTree(object):
         for item in items:
             item = item.replace('.','#').replace(FOLDER_SEPARATOR,'.')
             self.cl.setstatus(item, 'off')
+    
+    def set_all_items(self):
+        for item in self.all_items:
+            self.cl.setstatus(item, 'on')
 
 
 if __name__ == '__main__':

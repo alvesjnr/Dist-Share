@@ -138,9 +138,18 @@ class App(object):
         
     
     def event_refresh(self):
-        self.changed = True
-        for package in self.packages_variables.values():
-            package['var'].set(1)
+        
+        if not self.project_file_path:
+            return
+        
+        self.changed = False
+        self.root.wm_title(self.project_name+' - '+WINDOW_TITLE)
+
+        with open(self.project_file_path) as project:
+            project_struct = pickle.loads(project.read())
+            self.tree_view.set_all_items()
+            self.tree_view.set_unchecked_items(items=project_struct['unchecked_items'])
+        
     
     def event_next(self):
 
