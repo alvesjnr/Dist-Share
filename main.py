@@ -18,6 +18,7 @@ ROOT_PATH = "~"
 DEFAULT_TARGET_PATH = '~'
 DIST_FILE_VERSION = 'v0'
 FOLDER_SEPARATOR = os.sep
+WINDOW_TITLE = 'Dist Share'
 
 class App(object):
 
@@ -112,6 +113,7 @@ class App(object):
     
     def change_function(self):
         self.changed = True
+        self.root.wm_title(self.project_name+'* - '+WINDOW_TITLE)
 
     def set_packages(self, packages_list):
         
@@ -197,8 +199,10 @@ class App(object):
             self.tree_view = None
             self.project_name = None
             self.project_file_path = None
+            self.changed = False
             self.dist_name_entry.delete(0,tk.END)
             self.license_box.delete(1.0,tk.END)
+            self.root.wm_title('Untitled Project - '+WINDOW_TITLE)
             return True
 
     def save_project(self):
@@ -219,6 +223,7 @@ class App(object):
         open_file = open(self.project_file_path, 'w')
         pickle.dump(project_struct, open_file)
         open_file.close()
+        self.root.wm_title(self.project_name+' - '+WINDOW_TITLE)
         
 
     def load_project(self):
@@ -249,6 +254,7 @@ class App(object):
         self.tree_view.set_unchecked_items(items=project_struct['unchecked_items'])
 
         open_file.close()
+        self.root.wm_title(self.project_name+' - '+WINDOW_TITLE)
         
     
     def save_project_as(self):
@@ -270,6 +276,7 @@ class App(object):
         
         pickle.dump(project_struct, open_file)
         open_file.close()
+        self.root.wm_title(self.project_name+' - '+WINDOW_TITLE)
     
 
     def diff_tool(self, original=None, copy=None):
@@ -357,6 +364,7 @@ class LogBoard(object):
     
 if __name__=='__main__':
     root = Tix.Tk()
+    root.wm_title('Untitled Project - '+WINDOW_TITLE)
     app = App(root)
     root.mainloop()
 
