@@ -27,7 +27,7 @@ class CreateCopyError(Exception):
 
 def get_folder_tree(root):
     
-    root_name = root.split('/')[-1]
+    root_name = root.split(FOLDER_SEPARATOR)[-1]
     return ({root_name : get_folder_child(root,root)},{'meta':{'root_path':root}})
 
 
@@ -45,7 +45,7 @@ def get_folder_child(name,root):
 
 def get_package_tree(root):
 
-    root_name = root.split('/')[-1]
+    root_name = root.split(FOLDER_SEPARATOR)[-1]
     return ({root_name : get_package_child(root,root)},{'meta':{'root_path':root}})
 
 
