@@ -18,6 +18,7 @@ comments = {'.py':{'begin':'"""', 'end':'"""'},
 extensions = [key for key in comments]
 DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
 FOLDER_SEPARATOR = os.sep
+SPACE = '%20'
 
 
 class CreateCopyError(Exception):
@@ -37,7 +38,7 @@ def get_files(root,files=None):
         if os.path.isdir(f):
             files = get_files(f,files)
 
-    return files
+    return [f.replace(' ',SPACE) for f in files]
 
 
 def get_folder_tree(root):

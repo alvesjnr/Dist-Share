@@ -5,18 +5,18 @@ import Tix
 import os
 
 FOLDER_SEPARATOR = os.sep
+SPACE = '%20'
 
 class CheckboxTree(object):
-    def __init__(self, root, items={}, height=600, width=800, change_function=None):
+    def __init__(self, root, items=[], height=600, width=800, change_function=None):
         self.odd = True
         self.root = root
         self.height = height
         self.width = width
-        self.make_list(items)
+        self.make_list(normalize_items(items))
         self.change_function = change_function
         self.all_items = self.cl.getselection()
-
-
+        
     def make_list(self, items):
         self.cl = Tix.CheckList(self.root, 
                                 browsecmd=self.selectItem,
@@ -24,11 +24,13 @@ class CheckboxTree(object):
                                 width=self.width, 
                                 height=self.height,)
         self.cl.hlist.configure(indicatorcmd=self.colapse,
-                                selectforeground='black')
+                                selectforeground='black',
+                                separator=FOLDER_SEPARATOR)
         self.cl.pack(fill=Tix.BOTH)
         
-        if items:
-            self.add_items(items)
+        for i in items:
+            self.cl.hlist.add(i,text=i)
+            self.cl.setstatus(i, 'on')
         
         self.cl.autosetmode()
         for name in self.cl.getselection():
@@ -46,37 +48,19 @@ class CheckboxTree(object):
             self.cl.close(a)
         elif mode == 'open':
             self.cl.open(a)
-    
-
-    def add_items(self, items, parent=''):
-
-        for item in items:
-            replaced_item = item.replace('.','#')
-            if parent:
-                name = '%s.%s' % (parent,replaced_item)
-            else:
-                name = replaced_item
-            self.cl.hlist.add(name, text=item)
-            self.cl.setstatus(name, 'on')
-
-            if items[item]:
-                self.add_items(items[item], name)
 
     def selectItem(self, item):
         status = self.cl.getstatus(item)
         #do the top-bottom propagation
         for i in self.all_items:
-            if isinstance(i, tuple):
-                if ' '.join(i).startswith(item+'.'):
-                    self.cl.setstatus(i, status)
-            elif i.startswith(item+'.'):
+            if i.startswith(item + FOLDER_SEPARATOR):
                 self.cl.setstatus(i, status)
         
         #do the bottom-up propagation
-        parent = '.'.join(item.split('.')[:-1])
+        parent = FOLDER_SEPARATOR.join(item.split(FOLDER_SEPARATOR)[:-1])
         while status == 'on' and parent and self.cl.getstatus(parent) == 'off':
             self.cl.setstatus(parent, 'on')
-            parent = '.'.join(parent.split('.')[:-1])
+            parent = FOLDER_SEPARATOR.join(parent.split(FOLDER_SEPARATOR)[:-1])
         
         if self.change_function:
             self.change_function()
@@ -85,17 +69,10 @@ class CheckboxTree(object):
         self.cl.forget()
 
     def get_checked_items(self, mode='on'):
-        items = []
-        for item in self.cl.getselection(mode=mode):
-            if isinstance(item,str):
-                items.append(item.replace('.', FOLDER_SEPARATOR).replace('#','.'))
-            elif isinstance(item,tuple):
-                items.append(' '.join(item).replace('.', FOLDER_SEPARATOR).replace('#','.'))
-        return items
+        return self.cl.getselection(mode=mode)
     
     def set_unchecked_items(self, items):
         for item in items:
-            item = item.replace('.','#').replace(FOLDER_SEPARATOR,'.')
             self.cl.setstatus(item, 'off')
     
     def set_all_items(self):
@@ -103,18 +80,36 @@ class CheckboxTree(object):
             self.cl.setstatus(item, 'on')
 
 
+def normalize_items(items):
+    """ This function gets a list os directories and add the initial path:
+        input: ['/a/b/c', '/a/b/d', '/a/d/j']
+        output: ['a', 'a/b', 'a/b/c', 'a/b/d', 'a/d/j']
+    """
+
+    first_entry = items[0].split(FOLDER_SEPARATOR)
+
+    list_head = []
+    for i in range(len(first_entry)):
+        entry = FOLDER_SEPARATOR.join(first_entry[:i+1])
+        if entry:
+            if entry.startswith(FOLDER_SEPARATOR):
+                entry = entry.replace(FOLDER_SEPARATOR,'',1)
+            list_head.append(entry)
+
+    list_tail = []
+    for i in items[1:]:
+        if i.startswith(FOLDER_SEPARATOR):
+            i = i.replace(FOLDER_SEPARATOR,'',1)
+            list_tail.append(i)
+
+    return list_head + list_tail
+
+
 if __name__ == '__main__':
 
     """just for test and exemplification"""
-    items = {'one':{'A':{},
-                    'AAB':False,
-                    },
-             'two':{'has_more':{'1':None,
-                                '2':{},  #Empty node can be either None or {} or [] or False ...
-                                },
-                     'blah':{},
-                    },
-            }
+    import dist_creator as dc
+    items = dc.get_files('/home/antonio/Projects/LightPy')
 
     root = Tix.Tk()
     frame = Tix.Frame(root, bg='white')
