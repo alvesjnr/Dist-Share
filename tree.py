@@ -26,7 +26,7 @@ class CheckboxTree(object):
         self.cl.hlist.configure(indicatorcmd=self.colapse,
                                 selectforeground='black',
                                 separator=FOLDER_SEPARATOR)
-        self.cl.pack(fill=Tix.BOTH)
+        self.cl.pack(fill=Tix.BOTH, side=tk.LEFT)
         
         for i in items:
             self.cl.hlist.add(i,text=i)
@@ -85,6 +85,8 @@ def normalize_items(items):
         input: ['/a/b/c', '/a/b/d', '/a/d/j']
         output: ['a', 'a/b', 'a/b/c', 'a/b/d', 'a/d/j']
     """
+    if not items:
+        return []
 
     first_entry = items[0].split(FOLDER_SEPARATOR)
 
