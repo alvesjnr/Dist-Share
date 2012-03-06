@@ -25,6 +25,21 @@ class CreateCopyError(Exception):
     message="Something wrong when copying"
 
 
+def get_files(root,files=None):
+    if files is None:
+        files = []
+
+    files_here = [os.path.join(root,filename) for filename in os.listdir(root)]
+
+    files += files_here
+
+    for f in files_here:
+        if os.path.isdir(f):
+            files = get_files(f,files)
+
+    return files
+
+
 def get_folder_tree(root):
     
     root_name = root.split(FOLDER_SEPARATOR)[-1]
