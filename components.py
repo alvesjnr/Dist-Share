@@ -1,9 +1,12 @@
+import Tkinter as tk
+import os
+
+SEPARATOR = os.sep
 
 class Board(object):
     def __init__(self, root):
         
         self.root = root
-        self.log_saved = False
         
         self.text_frame = tk.Frame(self.root )
         self.text_board = tk.Text(self.text_frame, height=40, width=100 )
@@ -40,6 +43,8 @@ class SaveQuitBoard(Board):
 
         super(SaveQuitBoard,self).__init__(root)
 
+        self.log_saved = False
+
         self.button_save = tk.Button(self.buttons_frame,
                                      text="Save",
                                      command=self.event_save,
@@ -57,16 +62,50 @@ class SaveQuitBoard(Board):
 
     def event_quit(self):
         if not self.log_saved:
-            if not tkMessageBox.askokcancel('Log not yet saved', 'Log file is not yet saved.\nDo you want to quit anyway?', parent=self.root):
+            if not tkMessageBox.askokcancel('File not yet saved', 'File is not yet saved.\nDo you want to quit anyway?', parent=self.root):
                 return
         self.root.destroy()
 
 
+class RenameFile(object):
+    def __init__(self,root,file):
+
+        self.root = root
+        
+        self.full_file_name = file
+        self.filename = self.full_file_name.split(SEPARATOR)[-1]
+        self.filepath = SEPARATOR.join(self.full_file_name.split(SEPARATOR)[:-1]) + SEPARATOR
+        self.new_file_name = file
+
+        self.full_file_name_label = tk.Label(self.root,text=file)
+        self.new_name = tk.Entry(self.root)
+        self.new_name.bind('<KeyRelease>',self.change_name)
+        self.new_name.insert(0,self.filename)
+        self.newpath_variable = tk.StringVar()
+        self.newpath_variable.set(file)
+        self.new_file_name_label = tk.Label(self.root,textvariable=self.newpath_variable)
+
+        self.okay_cancel_frame = tk.Frame(self.root)
+        tk.Button(self.okay_cancel_frame, text='OK').pack(side=tk.LEFT)
+        tk.Button(self.okay_cancel_frame, text='Cancel').pack(side=tk.LEFT)
+
+
+        self.full_file_name_label.pack()
+        self.new_name.pack()
+        self.new_file_name_label.pack()
+        self.okay_cancel_frame.pack()
+
+
+    def change_name(self, event):
+        filename = self.new_name.get()
+        self.new_file_name = self.filepath + filename
+        self.newpath_variable.set(self.new_file_name)
+
+
 if __name__=='__main__':
 
-    import Tkinter as tk
 
     root = tk.Tk()
-    app = Board(root)
+    app = RenameFile(root,'/tmp/blah.py')
     root.mainloop()
 
