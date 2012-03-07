@@ -1,12 +1,42 @@
+#!/usr/bin/python
 import Tkinter as tk
 import ttk
-import dist_creator as dc
+from dist_creator import *
+from project import Project
 
 from tree import CheckboxTree
 
 import os
 
 SEPARATOR = os.sep
+
+
+def normalize_items(items):
+    """ This function gets a list os directories and add the initial path:
+        input: ['/a/b/c', '/a/b/d', '/a/d/j']
+        output: ['a', 'a/b', 'a/b/c', 'a/b/d', 'a/d/j']
+    """
+    if not items:
+        return []
+
+    first_entry = items[0].split(FOLDER_SEPARATOR)
+
+    list_head = []
+    for i in range(len(first_entry)):
+        entry = FOLDER_SEPARATOR.join(first_entry[:i+1])
+        if entry:
+            if entry.startswith(FOLDER_SEPARATOR):
+                entry = entry.replace(FOLDER_SEPARATOR,'',1)
+            list_head.append(entry)
+
+    list_tail = []
+    for i in items[1:]:
+        if i.startswith(FOLDER_SEPARATOR):
+            i = i.replace(FOLDER_SEPARATOR,'',1)
+            list_tail.append(i)
+
+    return list_head + list_tail
+
 
 class Board(object):
 
@@ -119,7 +149,7 @@ class RenameFile(object):
 
     def okay(self):
         modification = {'path':self.filepath[:-1],
-                        'old_name':self.original_name,
+                        'original_name':self.original_name,
                         'new_name':self.new_filename}
 
         self.comunicate_modification(modification)
@@ -128,13 +158,14 @@ class RenameFile(object):
 
 class TreeView(object):
     
-    def __init__(self,root, items=[]):
+    def __init__(self,root, items, parent):
         self.root = root
-
-        self.tree_view = ttk.Treeview(self.root)
+        self.parent = parent
+        items = normalize_items(items)
+        self.tree_view = ttk.Treeview(self.root, )
         self.add_items(items)
         self.tree_view.tag_bind('ttk', '<Double-Button-1>', self.item_clicked)
-        self.tree_view.pack(side=tk.LEFT)
+        self.tree_view.pack(side=tk.LEFT, fill=tk.BOTH)
 
     def add_item(self,item):
         if SEPARATOR in item:
@@ -148,7 +179,11 @@ class TreeView(object):
             self.add_item(item)
 
     def remove_item(self, item):
-        pass
+        self.tree_view.delete(item[1:])
+
+    def remove_items(self, items):
+        for item in items:
+            self.remove_item(item)
 
     def item_clicked(self, event):
 
@@ -162,18 +197,21 @@ class TreeView(object):
 
         #FIXME: reset name when midifying
         new_name = modification['new_name']
-        item_path = SEPARATOR.join([modification['path'],modification['old_name']])
+        item_path = SEPARATOR.join([modification['path'],modification['original_name']])
         old_name = self.tree_view.item(item_path)['text']
 
         if old_name != new_name:
             self.tree_view.item(item_path, text="%s -> %s" % (old_name,new_name))
 
+        self.parent.modifying_name(modification)
+
 
 class ModificationList(object):
 
-    def __init__(self, root):
+    def __init__(self, root, parent):
         
         self.root = root
+        self.parent = parent
         self.modification_list = []
 
         self.frame = tk.Frame(self.root)
@@ -186,11 +224,11 @@ class ModificationList(object):
         tk.Button(self.buttons_frame, text='Remove', command=self.remove_entry).pack(side=tk.LEFT)
 
         self.buttons_frame.pack()
-        self.frame.pack(side=tk.LEFT)
+        self.frame.pack(side=tk.LEFT,fill=tk.BOTH)
 
     def add_item(self,item):
         self.modification_list.insert(0,item)
-        old_name = item['old_name']
+        old_name = item['original_name']
         new_name = item['new_name']
 
         self.listbox.insert(0, "%s -> %s" % (old_name,new_name))
@@ -201,7 +239,7 @@ class ModificationList(object):
         
         rename_window = tk.Toplevel(self.root)
         rename_widget = RenameFile(rename_window, SEPARATOR.join([modification_profile['path'], 
-                                                                  modification_profile['old_name']]), 
+                                                                  modification_profile['original_name']]), 
                                    self.modification_function,
                                    modified_name=modification_profile['new_name'])
 
@@ -212,7 +250,7 @@ class ModificationList(object):
         index = int(self.listbox.curselection()[0])
 
         self.listbox.delete(index)
-        old_name = profile['old_name']
+        old_name = profile['original_name']
         new_name = profile['new_name']
 
         self.listbox.insert(0, "%s -> %s" % (old_name,new_name))
@@ -224,28 +262,60 @@ class ModificationList(object):
         self.listbox.delete(index, index)
         profile = self.modification_list.pop(index)
 
-        # self.parent.removing_rename(profile)
+        self.parent.removing_rename(profile)
 
 
-class App(object):
+class ProjectBoard(object):
 
     def __init__(self, root, path):
 
         self.root = root
+        self.path = path
+        self.items = get_files(path) #list all original files of the project
+        self.project_items = self.items[:] #list of all items that will be copied
 
-        items = dc.get_files(path)
-        self.tree = CheckboxTree(self.root, items=items)
-        self.tree_view = TreeView(self.root)
-        self.modification_list =  ModificationList(self.root)
+        self.project = Project(path,self.items)
 
+        self.project_frame = tk.Frame(self.root)
+        self.tree = CheckboxTree(self.project_frame, items=self.items, change_function=self.tree_changed)
+        self.tree_view = TreeView(self.project_frame, items=self.items, parent=self)
+        self.modification_list =  ModificationList(self.project_frame, parent=self)
+        self.project_frame.pack()
+
+    def tree_changed(self):
+        checked_items = self.tree.get_checked_items()
+
+        removed_items = [item for item in self.project_items if item not in checked_items]
+        added_items = [item for item in checked_items if item not in self.project_items]
+
+        self.project_items = checked_items
+
+        if removed_items:
+            self.tree_view.remove_items(removed_items)
+        if added_items:
+            self.tree_view.add_items(added_items)
+
+
+    def update_items(self):
+        self.items = get_files(self.path)
+        self.project.items = self.items
+
+    def modifying_name(self, profile):
+        self.modification_list.add_item(profile)
+        self.project.change_profile.append(profile)
+
+    def removing_rename(self, profile):
+        self.project.change_profile.remove(profile)
+        text = profile['original_name']
+        item_path = FOLDER_SEPARATOR.join([profile['path'],profile['original_name']])
+        self.tree_view.tree_view.item(item_path, text=text)
 
 
 if __name__=='__main__':
 
     import Tix
     root = Tix.Tk()
-    # app = TreeView(root, ['a', 'a/b', 'a/b/c', 'a/b/d', 'a/j'])
-    app = App(root, '/home/antonio/Projects/dist_project')
+    app = ProjectBoard(root, '/home/antonio/Projects/dist_project')
 
     root.mainloop()
 

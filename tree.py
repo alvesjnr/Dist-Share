@@ -8,7 +8,7 @@ FOLDER_SEPARATOR = os.sep
 SPACE = '%20'
 
 class CheckboxTree(object):
-    def __init__(self, root, items=[], height=600, width=800, change_function=None):
+    def __init__(self, root, items=[], height=400, width=600, change_function=None):
         self.odd = True
         self.root = root
         self.height = height
