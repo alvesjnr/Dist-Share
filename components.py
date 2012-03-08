@@ -199,9 +199,10 @@ class TreeView(object):
         new_name = modification['new_name']
         item_path = SEPARATOR.join([modification['path'],modification['original_name']])
         old_name = self.tree_view.item(item_path)['text']
+        original_name = modification['original_name']
 
         if old_name != new_name:
-            self.tree_view.item(item_path, text="%s -> %s" % (old_name,new_name))
+            self.tree_view.item(item_path, text="%s -> %s" % (original_name,new_name))
 
         self.parent.modifying_name(modification)
 

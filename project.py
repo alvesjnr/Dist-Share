@@ -2,6 +2,7 @@ from dist_creator import *
 import filecmp
 import os
 import shutil
+import git
 
 FOLDER_SEPARATOR = os.sep
 
@@ -42,6 +43,7 @@ class Project(object):
 
     def set_copy_location(self,path):
         self.copy_location = path
+        _,self.project_name = split_path(path)
 
     def create_new_copy(self):
         self.create_directories_struct()
@@ -59,6 +61,10 @@ class Project(object):
                 shutil.copy2(item,copy_target)
                 if self.license:
                     add_license(copy_target,self.license)
+
+        self.repo = git.Repo.init(self.source_path)
+        # add files to repo
+        # self.repo.commit('First commit of the project %s' % self.project_name)
 
     def create_directories_struct(self):
         for item in self.items:
