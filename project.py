@@ -1,5 +1,5 @@
 from dist_creator import *
-
+import filecmp
 import os
 
 FOLDER_SEPARATOR = os.sep
@@ -11,21 +11,34 @@ def split_path(full_filename):
 
 class Project(object):
 
-    def __init__(self,source_path, items):
+    def __init__(self,source_path):
 
-
-    	self.items = items
-    	self.source_path = source_path
-        self.change_profile = []
+        self.items = get_files(source_path)
+        self.source_path = source_path
+        self.change_profile = {} 
 
     def add_change(self, full_filename, new_name):
 
-        path,original_name = split_path(full_filename)
+        change_profile = {full_filename:new_name}
 
-        change_profile = {'original_name':original_name,
-                          'path':path,
-                          'new_name':new_name}
-        self.change_profile.append(change_profile)
+        self.change_profile.update(change_profile)
 
-    def copy(self):
-    	pass
+    def set_copy_lacation(self,path):
+        pass
+
+    def create_new_copy(self):
+        pass
+
+    def update_copy(self):
+        """ Update copy using svn wrapper.
+            It allows the code to scan just through modifyied files
+        """
+        pass
+
+    def hard_update_copy(self):
+        """ Update copy scanning ALL files
+            It takes a longer time to run
+        """
+        # filecmp.cmp can help here
+        pass
+
