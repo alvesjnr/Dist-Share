@@ -12,12 +12,13 @@ def split_path(full_filename):
 
 class Project(object):
 
-    def __init__(self,source_path):
+    def __init__(self,source_path, license=None):
 
         self.items = get_files(source_path)
         self.source_path = source_path
         self.change_profile = {}
         self.avoided_files = []
+        self.license = license
 
     def unavoid_file(self, full_filename):
         files_to_unavoid = []
@@ -34,13 +35,6 @@ class Project(object):
         for item in self.items:
             if item.startswith(full_filename) and item not in self.avoided_files:
                 self.avoided_files.append(item)
-
-    def add_file(self, full_filename):
-        if full_filename in self.avoided_files:
-            self.avoided_files.remove(full_filename)
-        for item in self.avoided_files:
-            if item.startswith(full_filename):
-                self.avoided_files.remove(item)
 
     def add_change(self, full_filename, new_name):
         change_profile = {full_filename:new_name}
@@ -63,6 +57,8 @@ class Project(object):
                 copy_target = os.path.join(self.copy_location,relative_item_path)
 
                 shutil.copy2(item,copy_target)
+                if self.license:
+                    add_license(copy_target,self.license)
 
     def create_directories_struct(self):
         for item in self.items:
@@ -144,6 +140,8 @@ class Project(object):
             if not os.path.exists(path):
                 os.makedirs(path)
             shutil.copy2(filename,copy_name)
+            if self.license:
+                add_license(copy_name,self.license)
 
     def update_file(self,filename):
         """ use it to update a file that already exists!!!
@@ -151,3 +149,6 @@ class Project(object):
         copy_name = self.get_copy_name(filename)
         os.remove(copy_name)
         os.shutil.copy2(filename,copy_name)
+        if self.license:
+            add_license(copy_name,self.license)
+

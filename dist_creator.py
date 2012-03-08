@@ -38,7 +38,7 @@ def get_files(root,files=None):
         if os.path.isdir(f):
             files = get_files(f,files)
 
-    return [f.replace(' ',SPACE) for f in files]
+    return files # [f.replace(' ',SPACE) for f in files]
 
 
 def get_folder_tree(root):
@@ -109,37 +109,31 @@ def create_copy(origin, destin, packages):
                 sys.stderr.write(str(e.message))
 
 
-def add_license(root, text):
+def add_license(filepath, text):
 
-    files = os.listdir(root)
+    _,ext = os.path.splitext(f)
+    if ext in extensions:
+        license = process_license(text, ext)
+    else:
+        return  # If the extension is not listed, we don't apply the license
 
-    for f in files:
-        file_path = os.path.join(root,f)
-
-        if os.path.isdir(file_path):
-            add_license(file_path, text)
+    with open(filepath, "r+") as f:
+        firstline = f.readline()
+        if DO_NOT_ADD_LICENSE_MARKER in firstline.upper():
+            old = f.read()
+            f.close()
+            with open(file_path, 'w') as f:
+                f.write(old)
+                return    #avoid any problems of reusing the f var
         else:
-            _,ext = os.path.splitext(f)
-            if ext in extensions:
-                license = process_license(text, ext)
-
-                with open(file_path, "r+") as f:
-                    firstline = f.readline()
-                    if DO_NOT_ADD_LICENSE_MARKER in firstline.upper():
-                        old = f.read()
-                        f.close()
-                        with open(file_path, 'w') as f:
-                            f.write(old)
-                        continue    #avoid any problems of reusing the f var
-                    else:
-                        f.seek(0)
-                        old = f.read()
-                        f.seek(0)
-                        try:
-                            f.write(license + old)
-                        except:
-                            #FIXME: seek for the correct encoding!
-                            f.write(old)
+            f.seek(0)
+            old = f.read()
+            f.seek(0)
+            try:
+                f.write(license + old)
+            except:
+                #FIXME: seek for the correct encoding!
+                f.write(old)
 
 
 def process_license(license, extension):
