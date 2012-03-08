@@ -16,7 +16,7 @@ class Project(object):
 
         self.items = get_files(source_path)
         self.source_path = source_path
-        self.change_profile = {} 
+        self.change_profile = {}
         self.avoided_files = []
 
     def avoid_file(self, full_filename):
@@ -83,16 +83,56 @@ class Project(object):
         else:
             return full_filename
 
-    def update_copy(self):
+    def update_copy(self, changed_files):
         """ Update copy using svn wrapper.
             It allows the code to scan just through modifyied files
         """
-        pass
+        updated_items = get_files(self.source_path)
+        removed_items = [item for item in self.items if item not in updated_items]
+        self.items = updated_items
 
-    def hard_update_copy(self):
-        """ Update copy scanning ALL files
-            It takes a longer time to run
+        for item in self.avoided_files:
+            self.remove_file(item)
+
+        for item in self.items:
+            if not os.exists(self.get_copy_path(item)) and item not in self.avoided:
+                self.copy_new_file(item)
+
+        for item in changed_files:
+            self.update_file(item)
+
+    def remove_file(self,origin_file_path):
+        """ get the origen file path and remove this file from copy
         """
-        # filecmp.cmp can help here
-        pass
+        filepath = self.get_copy_path(origin_file_path)
+        if os.path.exists(filepath):
+            os.shutil.rmtree(filepath)
 
+    def get_copy_path(self,origin_path):
+        """ get the origin file path and return its copy equivalent
+        """
+        if origin_path in self.change_profile:
+            copy_name = self.get_new_filename(origin_path)
+        else:
+            copy_name = origin_path
+        import pdb; pdb.set_trace()
+        relative_file_path = self.get_relative_path(copy_name)
+
+        if relative_file_path.startswith(FOLDER_SEPARATOR):
+            relative_file_path = relative_file_path.replace(FOLDER_SEPARATOR,'',1)
+
+        return os.path.join(self.copy_location,relative_file_path)
+
+    def copy_new_file(self,filename):
+        path,name = split_path(filename)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        copy_name = self.get_copy_name(filename)
+        os.shutil.copy2(filename,copyname)
+
+    def update_file(self,filename):
+        """ use it to update a file that already exists!!!
+        """
+        copy_name = self.get_copy_name(filename)
+        os.remove(copy_name)
+        os.shutil.copy2(filename,copyname)
