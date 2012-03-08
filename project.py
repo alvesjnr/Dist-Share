@@ -95,7 +95,7 @@ class Project(object):
             self.remove_file(item)
 
         for item in self.items:
-            if not os.exists(self.get_copy_path(item)) and item not in self.avoided:
+            if not os.path.exists(self.get_copy_path(item)) and item not in self.avoided_files:
                 self.copy_new_file(item)
 
         for item in changed_files:
@@ -106,7 +106,10 @@ class Project(object):
         """
         filepath = self.get_copy_path(origin_file_path)
         if os.path.exists(filepath):
-            os.shutil.rmtree(filepath)
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+            else:
+                shutil.rmtree(filepath)
 
     def get_copy_path(self,origin_path):
         """ get the origin file path and return its copy equivalent
@@ -115,7 +118,6 @@ class Project(object):
             copy_name = self.get_new_filename(origin_path)
         else:
             copy_name = origin_path
-        import pdb; pdb.set_trace()
         relative_file_path = self.get_relative_path(copy_name)
 
         if relative_file_path.startswith(FOLDER_SEPARATOR):
@@ -127,12 +129,12 @@ class Project(object):
         path,name = split_path(filename)
         if not os.path.exists(path):
             os.makedirs(path)
-        copy_name = self.get_copy_name(filename)
-        os.shutil.copy2(filename,copyname)
+        copy_name = self.get_copy_path(filename)
+        shutil.copy2(filename,copy_name)
 
     def update_file(self,filename):
         """ use it to update a file that already exists!!!
         """
         copy_name = self.get_copy_name(filename)
         os.remove(copy_name)
-        os.shutil.copy2(filename,copyname)
+        os.shutil.copy2(filename,copy_name)
