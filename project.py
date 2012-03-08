@@ -19,6 +19,15 @@ class Project(object):
         self.change_profile = {}
         self.avoided_files = []
 
+    def unavoid_file(self, full_filename):
+        files_to_unavoid = []
+        for item in self.avoided_files:
+            if item.startswith(full_filename):
+                files_to_unavoid.append(item)
+
+        for item in files_to_unavoid:
+            self.avoided_files.remove(item)
+
     def avoid_file(self, full_filename):
         if not full_filename in self.avoided_files:
             self.avoided_files.append(full_filename)
@@ -126,11 +135,15 @@ class Project(object):
         return os.path.join(self.copy_location,relative_file_path)
 
     def copy_new_file(self,filename):
-        path,name = split_path(filename)
-        if not os.path.exists(path):
-            os.makedirs(path)
         copy_name = self.get_copy_path(filename)
-        shutil.copy2(filename,copy_name)
+        path,name = split_path(copy_name)
+        if os.path.isdir(filename):
+            if not os.path.exists(copy_name):
+                os.makedirs(copy_name)
+        else:
+            if not os.path.exists(path):
+                os.makedirs(path)
+            shutil.copy2(filename,copy_name)
 
     def update_file(self,filename):
         """ use it to update a file that already exists!!!
