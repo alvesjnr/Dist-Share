@@ -6,7 +6,7 @@ import shutil
 FOLDER_SEPARATOR = os.sep
 
 def split_path(full_filename):
-    return (FOLDER_SEPARATORfull_filename.split(FOLDER_SEPARATOR)[:-1], 
+    return (FOLDER_SEPARATOR.join(full_filename.split(FOLDER_SEPARATOR)[:-1]),
             full_filename.split(FOLDER_SEPARATOR)[-1])
 
 
@@ -47,15 +47,19 @@ class Project(object):
                 continue
             if os.path.isfile(item):
                 if item in self.change_profile:
-                    item = self.get_new_filename(item)
-                relative_item_path = self.get_relative_path(item)
+                    copy_name = self.get_new_filename(item)
+                else:
+                    copy_name = item
+                relative_item_path = self.get_relative_path(copy_name)
                 copy_target = os.path.join(self.copy_location,relative_item_path)
 
                 shutil.copy2(item,copy_target)
 
     def create_directories_struct(self):
         for item in self.items:
-            if os.path.isdir(item):
+            if os.path.isdir(item) and item not in self.avoided_files:
+                if item in self.change_profile:
+                    item = self.get_new_filename(item)
                 relative_path = self.get_relative_path(item)
                 copy_target = os.path.join(self.copy_location,relative_path)
 
@@ -72,10 +76,10 @@ class Project(object):
         return relative_item_path
 
     def get_new_filename(self,full_filename):
-        if fulll_filename in self.change_profile:
+        if full_filename in self.change_profile:
             path,name = split_path(full_filename)
             new_name = self.change_profile[full_filename]
-            return os.path.join(path,full_filename)
+            return os.path.join(path,new_name)
         else:
             return full_filename
 
