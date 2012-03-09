@@ -11,7 +11,7 @@ def split_path(full_filename):
             full_filename.split(FOLDER_SEPARATOR)[-1])
 
 
-class Project(object):
+class Copy(object):
 
     def __init__(self,source_path, license=None):
 
@@ -40,6 +40,10 @@ class Project(object):
     def add_change(self, full_filename, new_name):
         change_profile = {full_filename:new_name}
         self.change_profile.update(change_profile)
+
+    def remove_change(self, full_filename):
+        if full_filename in self.change_profile:
+            self.change_profile.pop(full_filename)
 
     def set_copy_location(self,path):
         self.copy_location = path
@@ -173,3 +177,52 @@ class Project(object):
         if self.license:
             add_license(copy_name,self.license)
 
+
+class CopiesManager(object):
+
+    def __init__(self,path,name=''):
+       if not name:
+           _,name = split_path(path)
+       self.copies = []
+       self.source_path = path
+       self.current_copy = None
+
+    def create_copy(self,copy_location):
+        copy = Copy(self.source_path)
+        copy.set_copy_location = copy_location
+        # TODO: here you have to make several tests about the copy location!
+        self.copies.append(copy)
+
+    def update_all(self, changes):
+        """ this mesthod updtaes ALL projects, apllying changes from source
+            project to each copy
+        """
+        for copy in self.copies:
+            copy.update_copy(changes)
+
+    def add_license(self,license):
+        self.current_copy.license = license
+
+    def avoid_files(self,files):
+        for f in files:
+            self.current_copy.avoid_file(f)
+
+    def unavoid_file(self,files):
+        for f in files:
+            self.current_copy.avoid_file(f)
+
+    def update_copy(self,changes)
+        self.current_copy.update_copy(changes)
+
+    def rename_file(self,full_filename,new_name):
+        self.current_copy.add_change(full_filename,new_name)
+
+    def reset_renamed_file(self,full_filename):
+        self.current_copy.remove_change(full_filename)
+
+
+
+class Project(object):
+
+    def __init__(self):
+        pass
