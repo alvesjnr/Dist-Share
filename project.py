@@ -220,9 +220,37 @@ class CopiesManager(object):
     def reset_renamed_file(self,full_filename):
         self.current_copy.remove_change(full_filename)
 
+    def set_current_copy(self,copy_path='',project_name=''):
+        if copy_path:
+            for i in self.copies:
+                if i.copy_location == copy_path:
+                    self.current_copy = i
+                    break
+            else:
+                self.current_copy = None
+        elif project_name:
+            for i in self.copies:
+                if i.project_name == project_name:
+                    self.current_copy = i
+                    break
+            else:
+                self.current_project = None
 
 
+"""
+    Just some definitions for the project class:
+        source_location: is the place where the project is stored. It can be an SVN 
+                         repository or a local folde in ypur computer
+        local_copy : Is the copy of the original project, but in your computer!
+"""
 class Project(object):
 
-    def __init__(self):
-        pass
+    def __init__(self,source_location,local_copy):
+
+        if not self.set_original_project(source_location,local_copy):
+            raise Exception('It was not possible to start a new project')
+
+        self.copies_manager = CopiesManager(self.local_copy)
+
+    def set_original_project(self,source,local_copy):
+        return False
