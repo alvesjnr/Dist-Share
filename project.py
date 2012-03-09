@@ -131,6 +131,10 @@ class Copy(object):
         self.repo.git.add(self.copy_path)
         self.repo.git.commit('merging changes to master')
 
+    def push_copy(self):
+        # TODO
+        pass
+
     def remove_file(self,origin_file_path):
         """ get the origin file path and remove this file from copy
         """
@@ -247,10 +251,10 @@ class Project(object):
 
     def __init__(self,source_location,local_copy):
 
-        if not self.set_original_project(source_location,local_copy):
+        if not self.set_local_copy(source_location,local_copy):
             raise Exception('It was not possible to start a new project')
 
         self.copies_manager = CopiesManager(self.local_copy)
 
-    def set_original_project(self,source,local_copy):
+    def set_local_copy(self,source,local_copy):
         return False
