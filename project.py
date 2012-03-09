@@ -20,6 +20,7 @@ class Copy(object):
         self.change_profile = {}
         self.avoided_files = []
         self.license = license
+        self.files_to_delete = []
 
     def unavoid_file(self, full_filename):
         files_to_unavoid = []
@@ -39,11 +40,22 @@ class Copy(object):
 
     def add_change(self, full_filename, new_name):
         change_profile = {full_filename:new_name}
+        if full_filename in self.change_profile:
+            old_name = self.change_profile[full_filename]
+            self.schedule_file_to_delete(full_filename,old_name)
         self.change_profile.update(change_profile)
 
     def remove_change(self, full_filename):
         if full_filename in self.change_profile:
+            old_name = self.change_profile[full_filename]
+            self.schedule_file_to_delete(full_filename,old_name)
             self.change_profile.pop(full_filename)
+
+    def schedule_file_to_delete(self,full_filename,old_name):
+        copy_path = self.get_copy_path(full_filename)
+        location,_ = split_path(copy_path)
+        file_to_delete = os.path.join(location,old_name)
+        self.files_to_delete.append(file_to_delete)
 
     def set_copy_location(self,path):
         self.copy_location = path
@@ -122,8 +134,11 @@ class Copy(object):
         for item in changed_files:
             self.update_file(item)
 
+        for item in self.files_to_delete:
+            self.remove_renamed_file(item)
+        self.files_to_delete = []
+
         self.repo.git.add(self.copy_location)
-        # FIXME must scan for removed files
         for item in self.removed_files:
             self.repo.git.rm(item)
         self.repo.git.commit(m='updating project %s' % self.project_name)
@@ -137,6 +152,13 @@ class Copy(object):
     def push_copy(self):
         # TODO
         pass
+
+    def remove_renamed_file(self,file_path):
+        """ Remove files that were be renamed
+        """
+        if os.path.exists(file_path):
+            self.removed_files.append(file_path)
+            os.remove(file_path)
 
     def remove_file(self,origin_file_path):
         """ get the origin file path and remove this file from copy

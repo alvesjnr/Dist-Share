@@ -52,7 +52,6 @@ class CopyTest(unittest.TestCase):
         self.assertTrue(diff['just_on_left']==['/extending/setup.py'] and 
                         diff['just_on_right']==['/extending/Setup.py'])
 
-
     def test_add_and_remove_file(self):
         p = Copy(ORIGIN_PROJECT)
         p.set_copy_location('/tmp/blah')
@@ -77,6 +76,21 @@ class CopyTest(unittest.TestCase):
         with open('/tmp/dist_project/extending/setup.py') as f:
             file_content = f.read()
             self.assertTrue(file_content=='hola\n')
+
+    def test_modify_file_name_twice(self):
+        p = Copy(ORIGIN_PROJECT)
+        p.set_copy_location('/tmp/blah')
+        p.add_change(os.path.join(ORIGIN_PROJECT,'extending/setup.py'),'Setup.py')
+        p.create_new_copy()
+        diff = compare_tree(ORIGIN_PROJECT,'/tmp/blah')
+        self.assertTrue(diff['just_on_left']==['/extending/setup.py'] and 
+                        diff['just_on_right']==['/extending/Setup.py'])
+        p.add_change(os.path.join(ORIGIN_PROJECT,'extending/setup.py'),'SETUP.py')
+        p.update_copy([])
+        diff = compare_tree(ORIGIN_PROJECT,'/tmp/blah')
+        self.assertTrue(diff['just_on_left']==['/extending/setup.py'] and 
+                        diff['just_on_right']==['/extending/SETUP.py'])
+
 
 if __name__ == '__main__':
     unittest.main()
