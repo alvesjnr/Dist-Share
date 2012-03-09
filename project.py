@@ -179,9 +179,9 @@ class Copy(object):
     def update_file(self,filename):
         """ use it to update a file that already exists!!!
         """
-        copy_name = self.get_copy_name(filename)
+        copy_name = self.get_copy_path(filename)
         os.remove(copy_name)
-        os.shutil.copy2(filename,copy_name)
+        shutil.copy2(filename,copy_name)
         if self.license:
             add_license(copy_name,self.license)
 

@@ -4,7 +4,7 @@ import unittest
 import filecmp
 import os
 
-ORIGIN_PROJECT = '/home/antonio/Projects/dist_project'
+ORIGIN_PROJECT = '/tmp/dist_project'
 
 
 def compare_tree(left,right):
@@ -24,6 +24,8 @@ class CopyTest(unittest.TestCase):
     def setUp(self):
         os.system('rm -rf /tmp/blah')
         os.system('mkdir /tmp/blah')
+        os.system('rm -rf /tmp/dist_project')
+        os.system('cp -r ~/Projects/dist_project /tmp/dist_project')
 
     def test_create_new_copy(self):
         p = Copy(ORIGIN_PROJECT)
@@ -63,6 +65,18 @@ class CopyTest(unittest.TestCase):
         p.update_copy([])
         diff = compare_tree(ORIGIN_PROJECT,'/tmp/blah')
         self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+
+    def test_modify_file_content(self):
+        p = Copy(ORIGIN_PROJECT)
+        p.set_copy_location('/tmp/blah')
+        p.create_new_copy()
+        os.system('echo "hola" > /tmp/dist_project/extending/setup.py')
+        p.update_copy(['/tmp/dist_project/extending/setup.py'])
+        diff = compare_tree(ORIGIN_PROJECT,'/tmp/blah')
+        self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+        with open('/tmp/dist_project/extending/setup.py') as f:
+            file_content = f.read()
+            self.assertTrue(file_content=='hola\n')
 
 if __name__ == '__main__':
     unittest.main()
