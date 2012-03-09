@@ -66,9 +66,9 @@ class Copy(object):
                 if self.license:
                     add_license(copy_target,self.license)
 
-        self.repo = git.Repo.init(self.source_path)
+        self.repo = git.Repo.init(self.copy_location)
         self.repo.git.add(self.copy_location)
-        self.repo.git.commit('First commit of the project %s' % self.project_name)
+        self.repo.git.commit(m='First commit of the project %s' % self.project_name)
 
         self.repo.git.branch('update_branch')   # create an update branch to use when updating repository
 
@@ -111,6 +111,7 @@ class Copy(object):
         removed_items = [item for item in self.items if item not in updated_items]
         self.items = updated_items
 
+        self.removed_files = []
         for item in self.avoided_files:
             self.remove_file(item)
 
@@ -121,15 +122,17 @@ class Copy(object):
         for item in changed_files:
             self.update_file(item)
 
-        self.repo.git.add(self.copy_path)
-        self.repo.git.commit('update_branch', m='updating project %s' % self.project_name)
+        self.repo.git.add(self.copy_location)
+        # FIXME must scan for removed files
+        for item in self.removed_files:
+            self.repo.git.rm(item)
+        self.repo.git.commit(m='updating project %s' % self.project_name)
         self.update_master_branch()
 
     def update_master_branch(self):
         self.repo.git.checkout('master')
         self.repo.git.merge('update_branch')
-        self.repo.git.add(self.copy_path)
-        self.repo.git.commit('merging changes to master')
+        self.repo.git.add(self.copy_location)
 
     def push_copy(self):
         # TODO
@@ -140,6 +143,7 @@ class Copy(object):
         """
         filepath = self.get_copy_path(origin_file_path)
         if os.path.exists(filepath):
+            self.removed_files.append(filepath)
             if os.path.isfile(filepath):
                 os.remove(filepath)
             else:
@@ -215,7 +219,7 @@ class CopiesManager(object):
         for f in files:
             self.current_copy.avoid_file(f)
 
-    def update_copy(self,changes)
+    def update_copy(self,changes):
         self.current_copy.update_copy(changes)
 
     def rename_file(self,full_filename,new_name):
