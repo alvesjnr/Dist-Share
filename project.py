@@ -63,8 +63,10 @@ class Project(object):
                     add_license(copy_target,self.license)
 
         self.repo = git.Repo.init(self.source_path)
-        # add files to repo
-        # self.repo.commit('First commit of the project %s' % self.project_name)
+        self.repo.git.add(self.copy_location)
+        self.repo.git.commit('First commit of the project %s' % self.project_name)
+
+        self.repo.git.branch('update_branch')   # create an update branch to use when updating repository
 
     def create_directories_struct(self):
         for item in self.items:
@@ -98,6 +100,9 @@ class Project(object):
         """ Update copy using svn wrapper.
             It allows the code to scan just through modifyied files
         """
+        self.repo.git.checkout('update_branch')
+        self.repo.git.merge('master')
+
         updated_items = get_files(self.source_path)
         removed_items = [item for item in self.items if item not in updated_items]
         self.items = updated_items
@@ -112,8 +117,18 @@ class Project(object):
         for item in changed_files:
             self.update_file(item)
 
+        self.repo.git.add(self.copy_path)
+        self.repo.git.commit('update_branch', m='updating project %s' % self.project_name)
+        self.update_master_branch()
+
+    def update_master_branch(self):
+        self.repo.git.checkout('master')
+        self.repo.git.merge('update_branch')
+        self.repo.git.add(self.copy_path)
+        self.repo.git.commit('merging changes to master')
+
     def remove_file(self,origin_file_path):
-        """ get the origen file path and remove this file from copy
+        """ get the origin file path and remove this file from copy
         """
         filepath = self.get_copy_path(origin_file_path)
         if os.path.exists(filepath):
