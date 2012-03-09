@@ -91,6 +91,16 @@ class CopyTest(unittest.TestCase):
         self.assertTrue(diff['just_on_left']==['/extending/setup.py'] and 
                         diff['just_on_right']==['/extending/SETUP.py'])
 
+    def test_adding_license(self):
+        p = Copy(ORIGIN_PROJECT)
+        p.set_copy_location('/tmp/blah')
+        license = "this is a test license"
+        p.license = license
+        p.create_new_copy()
+        with open('/tmp/blah/extending/setup.py') as f:
+            file_license = f.readline()
+            self.assertTrue(license in file_license)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -43,7 +43,7 @@ def get_files(root,files=None):
 
 def add_license(filepath, text):
 
-    _,ext = os.path.splitext(f)
+    _,ext = os.path.splitext(filepath)
     if ext in extensions:
         license = process_license(text, ext)
     else:
@@ -54,7 +54,7 @@ def add_license(filepath, text):
         if DO_NOT_ADD_LICENSE_MARKER in firstline.upper():
             old = f.read()
             f.close()
-            with open(file_path, 'w') as f:
+            with open(filepath, 'w') as f:
                 f.write(old)
                 return    #avoid any problems of reusing the f var
         else:
