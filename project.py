@@ -3,6 +3,8 @@ import filecmp
 import os
 import shutil
 import git
+import pysvn
+import subprocess
 
 FOLDER_SEPARATOR = os.sep
 
@@ -267,6 +269,23 @@ class CopiesManager(object):
                 self.current_project = None
 
 
+def update_local_copy(path):
+    process = subprocess.Popen(['svn','update',path],stdout=subprocess.PIPE,stdin=subprocess.PIPE)
+    output,errors = process.communicate()
+    updated_files = []
+    if not errors:
+        output = output.split('\n')
+        for item in output:
+            if item.startswith('U'):
+                candidate = ' '.join(item.split()[1:])
+                if os.path.exists(candidate):
+                    updated_files.append(candidate)
+    else:
+        raise Exception('Unknow error when updating local copy: %s' % errors)
+
+    return updated_files
+
+
 """
     Just some definitions for the project class:
         source_location: is the place where the project is stored. It can be an SVN 
@@ -275,12 +294,25 @@ class CopiesManager(object):
 """
 class Project(object):
 
-    def __init__(self,source_location,local_copy):
+    def __init__(self,source_location=None,local_copy=None,dumped_process=None):
 
-        if not self.set_local_copy(source_location,local_copy):
-            raise Exception('It was not possible to start a new project')
+        if local_copy and source_location:
+            self.init_new_copy()
 
         self.copies_manager = CopiesManager(self.local_copy)
 
     def set_local_copy(self,source,local_copy):
-        return False
+        if os.path.exists(local_copy):
+            if not os.path.isdir(local_copy):
+                 raise Exception("It wouldn't possible to create local repository at %" % local_copy)
+        else:
+            try:
+                os.makedirs(local_copy)
+            except OSError:
+                raise Exception("It wouldn't possible to create local repository at %" % local_copy)
+
+        # At this point, local_copy folder were created and is ready to checkout
+        self.client = pysvn.Client()
+        self.client.checkout(url=source,path=local_copy)
+
+
