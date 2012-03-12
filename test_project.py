@@ -3,6 +3,8 @@ from dist_creator import get_files
 import unittest
 import filecmp
 import os
+import pickle
+import StringIO
 
 ORIGIN_PROJECT = '/tmp/dist_project'
 
@@ -184,6 +186,32 @@ class ProjectTest(unittest.TestCase):
         os.system('date +%N >> /tmp/workspace/svnrepo/nha')
         os.system('svn commit /tmp/workspace/svnrepo/nha -m "changing things in repo"')
         self.assertFalse(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+        p.update_project()
+        p.update_copies()
+        self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+        diff = compare_tree('/tmp/test_place','/tmp/blah2')
+        self.assertTrue(diff['just_on_left'] == ['/nha'] and diff['just_on_right'] == [])
+
+    def test_persist_project(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.create_current_copy()
+        p.add_new_copy('/tmp/blah2')
+        p.avoid_files(['/tmp/test_place/nha'])
+        p.create_current_copy()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+        diff = compare_tree('/tmp/test_place','/tmp/blah2')
+        self.assertTrue(diff['just_on_left'] == ['/nha'] and diff['just_on_right'] == [])
+        os.system('date > /tmp/workspace/svnrepo/nha')
+        os.system('date +%N >> /tmp/workspace/svnrepo/nha')
+        os.system('svn commit /tmp/workspace/svnrepo/nha -m "changing things in repo"')
+        self.assertFalse(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+
+        dumped_project = p.dumps()
+        del(p)
+        p = Project(dumped_project=dumped_project)
+
         p.update_project()
         p.update_copies()
         self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))

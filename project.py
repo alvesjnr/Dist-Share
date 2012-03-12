@@ -5,6 +5,8 @@ import shutil
 import git
 import pysvn
 import subprocess
+import pickle
+import StringIO
 
 FOLDER_SEPARATOR = os.sep
 
@@ -245,7 +247,7 @@ class CopiesManager(object):
         for f in files:
             self.current_copy.avoid_file(f)
 
-    def unavoid_file(self,files):
+    def unavoid_files(self,files):
         for f in files:
             self.current_copy.avoid_file(f)
 
@@ -278,6 +280,14 @@ class CopiesManager(object):
             else:
                 self.current_project = None
 
+    def forget_repo(self):
+        for copy in self.copies:
+            copy.repo = None
+
+    def remember_repo(self):
+        for copy in self.copies:
+            copy.repo = git.Repo(copy.copy_location)
+
 
 def update_local_copy(path):
     process = subprocess.Popen(['svn','update',path],stdout=subprocess.PIPE,stdin=subprocess.PIPE)
@@ -304,13 +314,25 @@ def update_local_copy(path):
 """
 class Project(object):
 
-    def __init__(self,url=None,path=None,dumped_process=None):
+    def __init__(self,url=None,path=None,dumped_project=None):
 
         self.path = path
+        self.url = url
+
         if  path and url:
             self.init_new_copy(url,path)
+            self.copies_manager = CopiesManager(self.path)
+            self.updated_files = set()
 
-        self.copies_manager = CopiesManager(self.path)
+        elif dumped_project:
+            project = pickle.loads(dumped_project)
+
+            self.client = pysvn.Client()
+            self.copies_manager = project.copies_manager
+            self.copies_manager.remember_repo()
+            self.updated_files = project.updated_files
+            self.path = project.path
+            self.url = project.url
 
     def init_new_copy(self,url,path):
         if os.path.exists(path):
@@ -336,10 +358,23 @@ class Project(object):
 
     def update_copies(self):
         self.copies_manager.update_copies(self.updated_files)
+        self.updated_files = set()
 
     def update_project(self):
-        self.updated_files = update_local_copy(self.path)
+        updated_files = update_local_copy(self.path)
+        for item in updated_files:
+            self.updated_files.add(item)
 
     def avoid_files(self,files):
         self.copies_manager.avoid_files(files)
+
+    def unavoid_files(self,files):
+        self.copies_manager.unavoid_files(files)
+
+    def dumps(self):
+        self.client = None
+        self.copies_manager.forget_repo()
+        dumped_project = pickle.dumps(self)
+        self.copies_manager.remember_repo()
+        return dumped_project
 
