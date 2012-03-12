@@ -23,6 +23,7 @@ class Copy(object):
         self.avoided_files = []
         self.license = license
         self.files_to_delete = []
+        self.initialized = False
 
     def unavoid_file(self, full_filename):
         files_to_unavoid = []
@@ -85,6 +86,7 @@ class Copy(object):
         self.repo.git.commit(m='First commit of the project %s' % self.project_name)
 
         self.repo.git.branch('update_branch')   # create an update branch to use when updating repository
+        self.initialized = True
 
     def create_directories_struct(self):
         for item in self.items:
@@ -95,7 +97,7 @@ class Copy(object):
                 copy_target = os.path.join(self.copy_location,relative_path)
 
                 if not os.path.exists(copy_target):
-                    os.mkdir(copy_target)
+                    os.makedirs(copy_target)
 
     def get_relative_path(self, path):
         """ Returns the relative path over the self.source_path
@@ -221,7 +223,7 @@ class CopiesManager(object):
 
     def create_copy(self,copy_location):
         copy = Copy(self.source_path)
-        copy.set_copy_location = copy_location
+        copy.set_copy_location(copy_location)
         # TODO: here you have to make several tests about the copy location!
         self.copies.append(copy)
 
@@ -316,4 +318,14 @@ class Project(object):
         self.client = pysvn.Client()
         self.client.checkout(url=url,path=path)
 
+    def add_new_copy(self,path):
+        self.copies_manager.create_copy(path)
+        self.copies_manager.set_current_copy(path)
+
+    def update_current_copy(self):
+        if self.copies_manager.current_copy.initialized:
+            pass
+            #Do things to REALLY update a this copy
+        else:
+            self.copies_manager.current_copy.create_new_copy()
 

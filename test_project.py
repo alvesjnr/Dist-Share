@@ -13,8 +13,8 @@ def compare_tree(left,right):
     on_left = [f.replace(left,'',1) for f in get_files(left)]
     on_right = [f.replace(right,'',1) for f in get_files(right)]
 
-    just_on_right = [f for f in on_right if f not in on_left and '/.git/' not in f and '/.svn/' not in f]
-    just_on_left = [f for f in on_left if f not in on_right and '/.git/' not in f and '/.svn/' not in f]
+    just_on_right = [f for f in on_right if f not in on_left and '/.git' not in f and '/.svn/' not in f]
+    just_on_left = [f for f in on_left if f not in on_right and '/.git' not in f and '/.svn/' not in f]
 
     return {'just_on_right':just_on_right, 'just_on_left':just_on_left}
 
@@ -105,16 +105,21 @@ class CopyTest(unittest.TestCase):
 class ProjectTest(unittest.TestCase):
 
     def setUp(self):
-        pass
-
-    def setup_folder(self):
         if os.path.exists('/tmp/test_place'):
             os.system('rm -rf /tmp/test_place')
+        if os.path.exists('/tmp/blah'):
+            os.system('rm -rf /tmp/blah')
 
     def test_create_new_project(self):
-        self.setup_folder()
         p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
         diff = compare_tree('/tmp/workspace/svnrepo','/tmp/test_place')
+        self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+
+    def test_create_one_copy(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.update_current_copy()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
         self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
 
 
