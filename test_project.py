@@ -218,6 +218,14 @@ class ProjectTest(unittest.TestCase):
         diff = compare_tree('/tmp/test_place','/tmp/blah2')
         self.assertTrue(diff['just_on_left'] == ['/nha'] and diff['just_on_right'] == [])
 
+    def test_push_to_git_repository(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.avoid_files(['/tmp/test_place/nha'])
+        p.create_current_copy()
+        p.create_remote('origin','git@github.com:alvesjnr/void.git')
+        p.push_current_copy()
+
 
 if __name__ == '__main__':
     unittest.main()

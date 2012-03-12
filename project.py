@@ -159,13 +159,10 @@ class Copy(object):
         self.repo.git.add(self.copy_location)
 
     def push_copy(self):
-        if self.hasattr('repo'):
+        if hasattr(self,'repo'):
             remote = self.repo.remote(self.remote_name)
-            try:
-                remote.push()
-            except git.GitCommandError:
-                #expected error
-                pass
+            import pdb; pdb.set_trace()
+            remote.push('master')
 
     def create_remote(self,name,url):
         self.remote_name = name
@@ -390,4 +387,10 @@ class Project(object):
         dumped_project = pickle.dumps(self)
         self.copies_manager.remember_repo()
         return dumped_project
+
+    def create_remote(self,name,url):
+        self.copies_manager.current_copy.create_remote(name,url)
+
+    def push_current_copy(self):
+        self.copies_manager.current_copy.push_copy()
 
