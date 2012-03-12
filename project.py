@@ -158,10 +158,9 @@ class Copy(object):
         self.repo.git.merge('update_branch')
         self.repo.git.add(self.copy_location)
 
-    def push_copy(self):
+    def push_copy(self,remote):
         if hasattr(self,'repo'):
-            remote = self.repo.remote(self.remote_name)
-            import pdb; pdb.set_trace()
+            remote = self.repo.remote(remote)
             remote.push('master')
 
     def create_remote(self,name,url):
@@ -391,6 +390,6 @@ class Project(object):
     def create_remote(self,name,url):
         self.copies_manager.current_copy.create_remote(name,url)
 
-    def push_current_copy(self):
-        self.copies_manager.current_copy.push_copy()
+    def push_current_copy(self,remote='origin'):
+        self.copies_manager.current_copy.push_copy(remote)
 
