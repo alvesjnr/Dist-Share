@@ -294,25 +294,26 @@ def update_local_copy(path):
 """
 class Project(object):
 
-    def __init__(self,source_location=None,local_copy=None,dumped_process=None):
+    def __init__(self,url=None,path=None,dumped_process=None):
 
-        if local_copy and source_location:
-            self.init_new_copy()
+        self.path = path
+        if  path and url:
+            self.init_new_copy(url,path)
 
-        self.copies_manager = CopiesManager(self.local_copy)
+        self.copies_manager = CopiesManager(self.path)
 
-    def set_local_copy(self,source,local_copy):
-        if os.path.exists(local_copy):
-            if not os.path.isdir(local_copy):
-                 raise Exception("It wouldn't possible to create local repository at %" % local_copy)
+    def init_new_copy(self,url,path):
+        if os.path.exists(path):
+            if not os.path.isdir(path):
+                 raise Exception("It wouldn't possible to create local repository at %" % path)
         else:
             try:
-                os.makedirs(local_copy)
+                os.makedirs(path)
             except OSError:
-                raise Exception("It wouldn't possible to create local repository at %" % local_copy)
+                raise Exception("It wouldn't possible to create local repository at %" % path)
 
         # At this point, local_copy folder were created and is ready to checkout
         self.client = pysvn.Client()
-        self.client.checkout(url=source,path=local_copy)
+        self.client.checkout(url=url,path=path)
 
 
