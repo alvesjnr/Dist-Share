@@ -159,8 +159,18 @@ class Copy(object):
         self.repo.git.add(self.copy_location)
 
     def push_copy(self):
-        # TODO
-        pass
+        if self.hasattr('repo'):
+            remote = self.repo.remote(self.remote_name)
+            try:
+                remote.push()
+            except git.GitCommandError:
+                #expected error
+                pass
+
+    def create_remote(self,name,url):
+        self.remote_name = name
+        self.remote_url = url
+        self.repo.create_remote(name,url)
 
     def remove_renamed_file(self,file_path):
         """ Remove files that were be renamed
@@ -333,6 +343,9 @@ class Project(object):
             self.updated_files = project.updated_files
             self.path = project.path
             self.url = project.url
+
+        else:
+            raise Exception("It wouldn't possible to create a new project")
 
     def init_new_copy(self,url,path):
         if os.path.exists(path):
