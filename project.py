@@ -145,7 +145,10 @@ class Copy(object):
         self.repo.git.add(self.copy_location)
         for item in self.removed_files:
             self.repo.git.rm(item)
-        self.repo.git.commit(m='updating project %s' % self.project_name)
+        try:
+            self.repo.git.commit(m='updating project %s' % self.project_name)
+        except git.GitCommandError:
+            pass #Expected error
         self.update_master_branch()
 
     def update_master_branch(self):
@@ -206,10 +209,11 @@ class Copy(object):
         """ use it to update a file that already exists!!!
         """
         copy_name = self.get_copy_path(filename)
-        os.remove(copy_name)
-        shutil.copy2(filename,copy_name)
-        if self.license:
-            add_license(copy_name,self.license)
+        if os.path.exists(copy_name):
+            os.remove(copy_name)
+            shutil.copy2(filename,copy_name)
+            if self.license:
+                add_license(copy_name,self.license)
 
 
 class CopiesManager(object):
@@ -335,4 +339,7 @@ class Project(object):
 
     def update_project(self):
         self.updated_files = update_local_copy(self.path)
+
+    def avoid_files(self,files):
+        self.copies_manager.avoid_files(files)
 

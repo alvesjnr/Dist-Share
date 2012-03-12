@@ -13,8 +13,8 @@ def compare_tree(left,right):
     on_left = [f.replace(left,'',1) for f in get_files(left)]
     on_right = [f.replace(right,'',1) for f in get_files(right)]
 
-    just_on_right = [f for f in on_right if f not in on_left and '/.git' not in f and '/.svn/' not in f]
-    just_on_left = [f for f in on_left if f not in on_right and '/.git' not in f and '/.svn/' not in f]
+    just_on_right = [f for f in on_right if f not in on_left and '/.git' not in f and '/.svn' not in f]
+    just_on_left = [f for f in on_left if f not in on_right and '/.git' not in f and '/.svn' not in f]
 
     return {'just_on_right':just_on_right, 'just_on_left':just_on_left}
 
@@ -109,6 +109,8 @@ class ProjectTest(unittest.TestCase):
             os.system('rm -rf /tmp/test_place')
         if os.path.exists('/tmp/blah'):
             os.system('rm -rf /tmp/blah')
+        if os.path.exists('/tmp/blah2'):
+            os.system('rm -rf /tmp/blah2')
 
     def test_create_new_project(self):
         p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
@@ -122,16 +124,71 @@ class ProjectTest(unittest.TestCase):
         diff = compare_tree('/tmp/test_place','/tmp/blah')
         self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
 
-    def test_update_cpoy(self):
+    def test_update_copy(self):
         p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
         p.add_new_copy('/tmp/blah')
         p.create_current_copy()
         os.system('date > /tmp/workspace/svnrepo/nha')
+        os.system('date +%N >> /tmp/workspace/svnrepo/nha')
         os.system('svn commit /tmp/workspace/svnrepo/nha -m "changing things in repo"')
         self.assertFalse(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
         p.update_project()
         p.update_copies()
         self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+
+    def test_managing_two_copies(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.create_current_copy()
+        p.add_new_copy('/tmp/blah2')
+        p.avoid_files(['/tmp/test_place/nha'])
+        p.create_current_copy()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+        diff = compare_tree('/tmp/test_place','/tmp/blah2')
+        self.assertTrue(diff['just_on_left'] == ['/nha'] and diff['just_on_right'] == [])
+
+    def test_updating_two_copies(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.create_current_copy()
+        p.add_new_copy('/tmp/blah2')
+        p.avoid_files(['/tmp/test_place/nuca'])
+        p.create_current_copy()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+        diff = compare_tree('/tmp/test_place','/tmp/blah2')
+        self.assertTrue(diff['just_on_left'] == ['/nuca','/nuca/suco'] and diff['just_on_right'] == [])
+        os.system('date > /tmp/workspace/svnrepo/nha')
+        os.system('date +%N >> /tmp/workspace/svnrepo/nha')
+        os.system('svn commit /tmp/workspace/svnrepo/nha -m "changing things in repo"')
+        self.assertFalse(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+        self.assertFalse(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah2/nha'))
+        p.update_project()
+        p.update_copies()
+        self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+        self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah2/nha'))
+
+    def test_updating_file_that_is_not_on_copy(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.create_current_copy()
+        p.add_new_copy('/tmp/blah2')
+        p.avoid_files(['/tmp/test_place/nha'])
+        p.create_current_copy()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+        diff = compare_tree('/tmp/test_place','/tmp/blah2')
+        self.assertTrue(diff['just_on_left'] == ['/nha'] and diff['just_on_right'] == [])
+        os.system('date > /tmp/workspace/svnrepo/nha')
+        os.system('date +%N >> /tmp/workspace/svnrepo/nha')
+        os.system('svn commit /tmp/workspace/svnrepo/nha -m "changing things in repo"')
+        self.assertFalse(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+        p.update_project()
+        p.update_copies()
+        self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+        diff = compare_tree('/tmp/test_place','/tmp/blah2')
+        self.assertTrue(diff['just_on_left'] == ['/nha'] and diff['just_on_right'] == [])
 
 
 if __name__ == '__main__':
