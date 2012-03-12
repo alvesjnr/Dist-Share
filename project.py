@@ -245,8 +245,12 @@ class CopiesManager(object):
         for f in files:
             self.current_copy.avoid_file(f)
 
-    def update_copy(self,changes):
+    def _update_copy(self,changes):
         self.current_copy.update_copy(changes)
+
+    def update_copies(self,changes):
+        for copy in self.copies:
+            copy.update_copy(changes)
 
     def rename_file(self,full_filename,new_name):
         self.current_copy.add_change(full_filename,new_name)
@@ -322,10 +326,13 @@ class Project(object):
         self.copies_manager.create_copy(path)
         self.copies_manager.set_current_copy(path)
 
-    def update_current_copy(self):
-        if self.copies_manager.current_copy.initialized:
-            pass
-            #Do things to REALLY update a this copy
-        else:
+    def create_current_copy(self):
+        if not self.copies_manager.current_copy.initialized:
             self.copies_manager.current_copy.create_new_copy()
+
+    def update_copies(self):
+        self.copies_manager.update_copies(self.updated_files)
+
+    def update_project(self):
+        self.updated_files = update_local_copy(self.path)
 

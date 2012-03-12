@@ -118,9 +118,20 @@ class ProjectTest(unittest.TestCase):
     def test_create_one_copy(self):
         p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
         p.add_new_copy('/tmp/blah')
-        p.update_current_copy()
+        p.create_current_copy()
         diff = compare_tree('/tmp/test_place','/tmp/blah')
         self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+
+    def test_update_cpoy(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.create_current_copy()
+        os.system('date > /tmp/workspace/svnrepo/nha')
+        os.system('svn commit /tmp/workspace/svnrepo/nha -m "changing things in repo"')
+        self.assertFalse(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
+        p.update_project()
+        p.update_copies()
+        self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
 
 
 if __name__ == '__main__':
