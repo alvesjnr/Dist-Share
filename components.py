@@ -104,29 +104,22 @@ class SaveQuitBoard(Board):
         self.root.destroy()
 
 
-class RenameFile(object):
-    def __init__(self,root,file, modification_function, modified_name=''):
+class EditModification(object):
 
+    def __init__(self,root,change_descriptor,callback):
         self.root = root
+        self.change_descriptor = change_descriptor
         
-        self.full_file_name = file
-        self.original_name = self.full_file_name.split(SEPARATOR)[-1]
-        
-        self.filepath = SEPARATOR.join(self.full_file_name.split(SEPARATOR)[:-1]) + SEPARATOR
-        
-        if modified_name:
-            self.new_filename = modified_name
-            newpath_value = self.filepath + modified_name
-        else:
-            newpath_value = file
-            self.new_filename = self.original_name
-        
-        self.full_file_name_label = tk.Label(self.root,text=file)
+        self.full_file_name, self.modified_name = self._split_text(change_descriptor)
+
+        self.original_path, self.original_name = split_path(self.full_file_name)
+
+        self.full_file_name_label = tk.Label(self.root,text=self.full_file_name)
         self.new_name = tk.Entry(self.root)
         self.new_name.bind('<KeyRelease>',self.change_name)
-        self.new_name.insert(0,self.new_filename)
+        self.new_name.insert(0,self.modified_name)
         self.newpath_variable = tk.StringVar()
-        self.newpath_variable.set(newpath_value)
+        self.newpath_variable.set(os.path.join(self.original_path,self.modified_name))
         self.new_file_name_label = tk.Label(self.root,textvariable=self.newpath_variable)
 
         self.okay_cancel_frame = tk.Frame(self.root)
@@ -138,74 +131,22 @@ class RenameFile(object):
         self.new_file_name_label.pack()
         self.okay_cancel_frame.pack()
 
-        self.comunicate_modification = modification_function
+        self.callback = callback
+    
+    def _split_text(self,item):
+            return item.split(' -> ')
 
     def change_name(self, event):
-        self.new_filename = self.new_name.get()
-        self.new_file_name = self.filepath + self.new_filename
-        self.newpath_variable.set(self.new_file_name)
+        self.modified_name = self.new_name.get()
+        new_file_name = os.path.join(self.original_path,self.modified_name)
+        self.newpath_variable.set(new_file_name)
 
     def close(self):
         self.root.destroy()
 
     def okay(self):
-        modification = {'path':self.filepath[:-1],
-                        'original_name':self.original_name,
-                        'new_name':self.new_filename}
-
-        self.comunicate_modification(modification)
+        self.callback(self.change_descriptor,self.modified_name)
         self.close()
-
-
-class TreeView(object):
-    
-    def __init__(self,root, items, parent):
-        self.root = root
-        self.parent = parent
-        items = normalize_items(items)
-        self.tree_view = ttk.Treeview(self.root, )
-        self.add_items(items)
-        self.tree_view.tag_bind('ttk', '<Double-Button-1>', self.item_clicked)
-        self.tree_view.pack(side=tk.LEFT, fill=tk.BOTH)
-
-    def add_item(self,item):
-        if SEPARATOR in item:
-            folder = item.split(SEPARATOR)
-            self.tree_view.insert(SEPARATOR.join(folder[:-1]), 'end', item, text=folder[-1],tags=('ttk','simple'))
-        else:
-            self.tree_view.insert('','end',item,text=item,tags=('ttk','simple'))
-
-    def add_items(self,items):
-        for item in items:
-            self.add_item(item)
-
-    def remove_item(self, item):
-        self.tree_view.delete(item[1:])
-
-    def remove_items(self, items):
-        for item in items:
-            self.remove_item(item)
-
-    def item_clicked(self, event):
-
-        item_clicked = self.tree_view.focus()
-
-        rename_window = tk.Toplevel(self.root)
-        rename_widget = RenameFile(rename_window, item_clicked, self.modification_function)
-        rename_window.transient(self.root)   
-
-    def modification_function(self,modification):
-
-        #FIXME: reset name when midifying
-        new_name = modification['new_name']
-        item_path = SEPARATOR.join([modification['path'],modification['original_name']])
-        old_name = self.tree_view.item(item_path)['text']
-        original_name = modification['original_name']
-
-        if old_name != new_name:
-            self.tree_view.item(item_path, text="%s -> %s" % (original_name,new_name))
-
-        self.parent.modifying_name(modification)
 
 
 class ModificationList(object):
@@ -217,7 +158,7 @@ class ModificationList(object):
         self.modification_list = []
 
         self.frame = tk.Frame(self.root)
-        self.listbox = tk.Listbox(self.frame)
+        self.listbox = tk.Listbox(self.frame, width=50, height=30)
         self.listbox.bind('<Double-Button-1>', self.edit_entry)
         self.listbox.pack()
 
@@ -230,25 +171,18 @@ class ModificationList(object):
         self.frame.pack(side=tk.LEFT,fill=tk.BOTH)
 
     def edit_entry(self, event=None):
-        if len(self.listbox.curselection()):
-            index = int(self.listbox.curselection()[0])
-            modification_profile = self.modification_list[index]
-            
-            rename_window = tk.Toplevel(self.root)
-            rename_widget = RenameFile(rename_window, SEPARATOR.join([modification_profile['path'], 
-                                                                      modification_profile['original_name']]), 
-                                       self.modification_function,
-                                       modified_name=modification_profile['new_name'])
-            rename_window.transient(self.root)
+        modification_entry = self.listbox.selection_get()
+        original_name, new_name = self._split_text(modification_entry)
+        
+        modify_window = tk.Toplevel(self.root)
+        modify_widget = EditModification(modify_window,modification_entry,self.edit_entry_callback)
 
-
-    def modification_function(self,profile):
-        #FIXME!!!
-        index = int(self.listbox.curselection()[0])
-        self.listbox.delete(index)
-        old_name = profile['original_name']
-        new_name = profile['new_name']
-        self.listbox.insert(0, "%s -> %s" % (old_name,new_name))
+    def edit_entry_callback(self,change_descriptor,new_name):
+        if change_descriptor == self.listbox.get('active'):
+            self.listbox.delete('active')
+            original_name,_ = self._split_text(change_descriptor)
+            self.listbox.insert(0,"%s -> %s" % (original_name,new_name))
+        
 
     def add_entry_window(self):
         """ Calls the AddModification window passing the function _add_item
@@ -271,11 +205,11 @@ class ModificationList(object):
         self.listbox.insert(0,"%s -> %s" % (original_name,new_name))
 
     def get_modification_list(self):
-        
-        def _split_text(item):
-            return item.split(' -> ')
 
-        return dict(_split_text(item) for item in self.listbox.get(0,tk.END))
+        return dict(self._split_text(item) for item in self.listbox.get(0,tk.END))
+
+    def _split_text(self,item):
+            return item.split(' -> ')
 
 
 class AddModification(object):
@@ -292,14 +226,14 @@ class AddModification(object):
         self.frame_butons = tk.Frame(self.frame)
 
         self.label_path = tk.Label(self.frame_path, text="File:")
-        self.text_path = tk.Entry(self.frame_path)
+        self.text_path = tk.Entry(self.frame_path, width=50)
         self.button_load_file = tk.Button(self.frame_path, text="Load",command=self.load)
         self.label_path.pack(side=tk.LEFT)
         self.text_path.pack(side=tk.LEFT)
         self.button_load_file.pack(side=tk.LEFT)
 
         self.label_newname = tk.Label(self.frame_newname, text="New Name:")
-        self.text_newname = tk.Entry(self.frame_newname)
+        self.text_newname = tk.Entry(self.frame_newname, width=20)
         self.text_newname.bind('<KeyRelease>',self.change_name)
         self.label_newname.pack(side=tk.LEFT)
         self.text_newname.pack(side=tk.LEFT)
@@ -315,7 +249,7 @@ class AddModification(object):
         self.button_cancel.pack(side=tk.LEFT)
 
         self.frame_path.pack()
-        self.frame_newname.pack()
+        self.frame_newname.pack(anchor='w')
         self.frame_label.pack()
         self.frame_butons.pack()
         self.frame.pack()
@@ -342,7 +276,8 @@ class AddModification(object):
         self.root.destroy()
 
     def okay(self):
-        self.callback(self.original_name,self.name)
+        if hasattr(self,'original_name'):
+            self.callback(self.original_name,self.name)
         self.cancel()
 
 
