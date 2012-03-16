@@ -56,11 +56,14 @@ class App(object):
         self.copy_manager_menu = EditableOptionMenu(self.copy_manager_frame,
                                                     self.copy_manager_var, 
                                                     *('-'), 
-                                                    command=None)   
+                                                    command=None)
         self.copy_manager_update_button = tk.Button(self.copy_manager_frame, text='Update Copy')
+        self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project')
         self.copy_manager_label.pack(side=tk.LEFT)
         self.copy_manager_menu.pack(side=tk.LEFT)
         self.copy_manager_update_button.pack(side=tk.LEFT)
+        tk.Frame(self.copy_manager_frame, width=102, height=2, bd=0, relief=tk.SUNKEN).pack(fill=tk.X, padx=25, pady=5, side=tk.LEFT) #separator
+        self.copy_manager_update_project_button.pack(side=tk.LEFT)
 
         #project frame contains both tree and rename list
         self.project_frame_tree = tk.Frame(self.project_frame)
@@ -71,7 +74,7 @@ class App(object):
         self.project_frame_list.pack(side=tk.LEFT)
 
         #packing frames
-        self.copy_manager_frame.pack()
+        self.copy_manager_frame.pack(anchor='w')
         self.project_frame.pack()
         self.license_frame.pack()
         self.main_frame.pack()
