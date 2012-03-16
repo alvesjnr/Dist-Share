@@ -10,10 +10,6 @@ import StringIO
 
 FOLDER_SEPARATOR = os.sep
 
-def split_path(full_filename):
-    return (FOLDER_SEPARATOR.join(full_filename.split(FOLDER_SEPARATOR)[:-1]),
-            full_filename.split(FOLDER_SEPARATOR)[-1])
-
 
 class Copy(object):
 

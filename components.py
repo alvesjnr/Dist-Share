@@ -1,8 +1,9 @@
 #!/usr/bin/python
 import Tkinter as tk
+import Tix
 import ttk
 from dist_creator import *
-from project import Project
+import tkFileDialog, tkMessageBox
 
 from tree import CheckboxTree
 
@@ -221,102 +222,134 @@ class ModificationList(object):
         self.listbox.pack()
 
         self.buttons_frame = tk.Frame(self.frame)
+        tk.Button(self.buttons_frame, text='Add', command=self.add_entry_window).pack(side=tk.LEFT)
         tk.Button(self.buttons_frame, text='Edit', command=self.edit_entry).pack(side=tk.LEFT)
         tk.Button(self.buttons_frame, text='Remove', command=self.remove_entry).pack(side=tk.LEFT)
 
         self.buttons_frame.pack()
         self.frame.pack(side=tk.LEFT,fill=tk.BOTH)
 
-    def add_item(self,item):
-        self.modification_list.insert(0,item)
-        old_name = item['original_name']
-        new_name = item['new_name']
-
-        self.listbox.insert(0, "%s -> %s" % (old_name,new_name))
-
     def edit_entry(self, event=None):
-        index = int(self.listbox.curselection()[0])
-        modification_profile = self.modification_list[index]
-        
-        rename_window = tk.Toplevel(self.root)
-        rename_widget = RenameFile(rename_window, SEPARATOR.join([modification_profile['path'], 
-                                                                  modification_profile['original_name']]), 
-                                   self.modification_function,
-                                   modified_name=modification_profile['new_name'])
+        if len(self.listbox.curselection()):
+            index = int(self.listbox.curselection()[0])
+            modification_profile = self.modification_list[index]
+            
+            rename_window = tk.Toplevel(self.root)
+            rename_widget = RenameFile(rename_window, SEPARATOR.join([modification_profile['path'], 
+                                                                      modification_profile['original_name']]), 
+                                       self.modification_function,
+                                       modified_name=modification_profile['new_name'])
+            rename_window.transient(self.root)
 
-        rename_window.transient(self.root)
 
     def modification_function(self,profile):
         #FIXME!!!
         index = int(self.listbox.curselection()[0])
-
         self.listbox.delete(index)
         old_name = profile['original_name']
         new_name = profile['new_name']
-
         self.listbox.insert(0, "%s -> %s" % (old_name,new_name))
-        # self.parent.modifying_name(profile)
+
+    def add_entry_window(self):
+        """ Calls the AddModification window passing the function _add_item
+            to insert a new entry
+        """
+        add_entry_window = tk.Toplevel(self.root)
+        add_entry_widget = AddModification(path='/tmp',callback=self._add_item,root=add_entry_window)
+        add_entry_window.transient(self.root)
 
     def remove_entry(self):
-        index = int(self.listbox.curselection()[0])
+        if len(self.listbox.curselection()):
+            index = int(self.listbox.curselection()[0])
+            self.listbox.delete(index, index)
 
-        self.listbox.delete(index, index)
-        profile = self.modification_list.pop(index)
+    def fill(self,items):
+        for item in items:
+            self._add_item(item,items[item])
 
-        self.parent.removing_rename(profile)
+    def _add_item(self,original_name,new_name):
+        self.listbox.insert(0,"%s -> %s" % (original_name,new_name))
+
+    def get_modification_list(self):
+        
+        def _split_text(item):
+            return item.split(' -> ')
+
+        return dict(_split_text(item) for item in self.listbox.get(0,tk.END))
 
 
-class ProjectBoard(object):
+class AddModification(object):
 
-    def __init__(self, root, path):
+    def __init__(self,root,path,callback):
 
         self.root = root
-        self.path = path
-        self.items = get_files(path) #list all original files of the project
-        self.project_items = self.items[:] #list of all items that will be copied
+        self.callback = callback
 
-        self.project = Project(path,self.items)
+        self.frame = tk.Frame(self.root)
+        self.frame_path = tk.Frame(self.frame)
+        self.frame_newname = tk.Frame(self.frame)
+        self.frame_label = tk.Frame(self.frame)
+        self.frame_butons = tk.Frame(self.frame)
 
-        self.project_frame = tk.Frame(self.root)
-        self.tree = CheckboxTree(self.project_frame, items=self.items, change_function=self.tree_changed)
-        self.tree_view = TreeView(self.project_frame, items=self.items, parent=self)
-        self.modification_list =  ModificationList(self.project_frame, parent=self)
-        self.project_frame.pack()
+        self.label_path = tk.Label(self.frame_path, text="File:")
+        self.text_path = tk.Entry(self.frame_path)
+        self.button_load_file = tk.Button(self.frame_path, text="Load",command=self.load)
+        self.label_path.pack(side=tk.LEFT)
+        self.text_path.pack(side=tk.LEFT)
+        self.button_load_file.pack(side=tk.LEFT)
 
-    def tree_changed(self):
-        checked_items = self.tree.get_checked_items()
+        self.label_newname = tk.Label(self.frame_newname, text="New Name:")
+        self.text_newname = tk.Entry(self.frame_newname)
+        self.text_newname.bind('<KeyRelease>',self.change_name)
+        self.label_newname.pack(side=tk.LEFT)
+        self.text_newname.pack(side=tk.LEFT)
 
-        removed_items = [item for item in self.project_items if item not in checked_items]
-        added_items = [item for item in checked_items if item not in self.project_items]
+        self.newpath_variable = tk.StringVar()
+        self.newpath_variable.set('')
+        self.new_file_name_label = tk.Label(self.frame_label,textvariable=self.newpath_variable)
+        self.new_file_name_label.pack()
 
-        self.project_items = checked_items
+        self.button_okay = tk.Button(self.frame_butons, text='Okay', command=self.okay)
+        self.button_cancel = tk.Button(self.frame_butons, text='Cancel', command=self.cancel)
+        self.button_okay.pack(side=tk.LEFT)
+        self.button_cancel.pack(side=tk.LEFT)
 
-        if removed_items:
-            self.tree_view.remove_items(removed_items)
-        if added_items:
-            self.tree_view.add_items(added_items)
+        self.frame_path.pack()
+        self.frame_newname.pack()
+        self.frame_label.pack()
+        self.frame_butons.pack()
+        self.frame.pack()
 
+    def load(self):
+        filepath = tkFileDialog.askopenfilename()
 
-    def update_items(self):
-        self.items = get_files(self.path)
-        self.project.items = self.items
+        if filepath:
+            path,name = split_path(filepath)
+            self.text_path.insert(0,filepath)
+            self.text_newname.insert(0,name)
+            self.newpath_variable.set(filepath)
+            
+            self.original_name = filepath
+            self.path = path
+            self.name = name
 
-    def modifying_name(self, profile):
-        self.modification_list.add_item(profile)
-        self.project.change_profile.append(profile)
+    def change_name(self,blah):
+        self.name = self.text_newname.get()
+        new_file_name = os.path.join(self.path,self.name)
+        self.newpath_variable.set(new_file_name)
 
-    def removing_rename(self, profile):
-        self.project.change_profile.remove(profile)
-        text = profile['original_name']
-        item_path = FOLDER_SEPARATOR.join([profile['path'],profile['original_name']])
-        self.tree_view.tree_view.item(item_path, text=text)
+    def cancel(self):
+        self.root.destroy()
+
+    def okay(self):
+        self.callback(self.original_name,self.name)
+        self.cancel()
 
 
 if __name__=='__main__':
 
-    import Tix
     root = Tix.Tk()
-    app = ProjectBoard(root, '/home/antonio/Projects/dist_project')
-
+    app = ModificationList(root, '/home/antonio/Projects/dist_project')
+    app.fill({'a/b/c.py':'C.py', 'a/b/d.py':'D.py'})
     root.mainloop()
 

@@ -20,6 +20,9 @@ DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
 FOLDER_SEPARATOR = os.sep
 SPACE = '%20'
 
+def split_path(full_filename):
+    return (FOLDER_SEPARATOR.join(full_filename.split(FOLDER_SEPARATOR)[:-1]),
+            full_filename.split(FOLDER_SEPARATOR)[-1])
 
 class CreateCopyError(Exception):
     """Something wrong when copying"""
