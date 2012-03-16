@@ -8,16 +8,15 @@ FOLDER_SEPARATOR = os.sep
 SPACE = '%20'
 
 class CheckboxTree(object):
-    def __init__(self, root, items=[], height=400, width=600, change_function=None):
+    def __init__(self, root, parent, height=500, width=600):
         self.odd = True
         self.root = root
         self.height = height
         self.width = width
-        self.make_list(normalize_items(items))
-        self.change_function = change_function
-        self.all_items = self.cl.getselection()
-        
-    def make_list(self, items):
+        self.parent = parent
+        self.reset_tree()
+
+    def reset_tree(self):
         self.cl = Tix.CheckList(self.root, 
                                 browsecmd=self.selectItem,
                                 command=self.selectItem,
@@ -27,6 +26,13 @@ class CheckboxTree(object):
                                 selectforeground='black',
                                 separator=FOLDER_SEPARATOR)
         self.cl.pack(fill=Tix.BOTH, side=tk.LEFT)
+
+    def fill(self,items):
+        self.make_list(normalize_items(items))
+        self.change_function = change_function
+        self.all_items = self.cl.getselection()
+        
+    def make_list(self, items):
         
         for i in items:
             self.cl.hlist.add(i,text=i)
@@ -78,33 +84,6 @@ class CheckboxTree(object):
     def set_all_items(self):
         for item in self.all_items:
             self.cl.setstatus(item, 'on')
-
-
-def normalize_items(items):
-    """ This function gets a list os directories and add the initial path:
-        input: ['/a/b/c', '/a/b/d', '/a/d/j']
-        output: ['a', 'a/b', 'a/b/c', 'a/b/d', 'a/d/j']
-    """
-    if not items:
-        return []
-
-    first_entry = items[0].split(FOLDER_SEPARATOR)
-
-    list_head = []
-    for i in range(len(first_entry)):
-        entry = FOLDER_SEPARATOR.join(first_entry[:i+1])
-        if entry:
-            if entry.startswith(FOLDER_SEPARATOR):
-                entry = entry.replace(FOLDER_SEPARATOR,'',1)
-            list_head.append(entry)
-
-    list_tail = []
-    for i in items[1:]:
-        if i.startswith(FOLDER_SEPARATOR):
-            i = i.replace(FOLDER_SEPARATOR,'',1)
-            list_tail.append(i)
-
-    return list_head + list_tail
 
 
 if __name__ == '__main__':

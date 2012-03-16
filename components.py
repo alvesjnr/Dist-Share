@@ -12,33 +12,6 @@ import os
 SEPARATOR = os.sep
 
 
-def normalize_items(items):
-    """ This function gets a list os directories and add the initial path:
-        input: ['/a/b/c', '/a/b/d', '/a/d/j']
-        output: ['a', 'a/b', 'a/b/c', 'a/b/d', 'a/d/j']
-    """
-    if not items:
-        return []
-
-    first_entry = items[0].split(FOLDER_SEPARATOR)
-
-    list_head = []
-    for i in range(len(first_entry)):
-        entry = FOLDER_SEPARATOR.join(first_entry[:i+1])
-        if entry:
-            if entry.startswith(FOLDER_SEPARATOR):
-                entry = entry.replace(FOLDER_SEPARATOR,'',1)
-            list_head.append(entry)
-
-    list_tail = []
-    for i in items[1:]:
-        if i.startswith(FOLDER_SEPARATOR):
-            i = i.replace(FOLDER_SEPARATOR,'',1)
-            list_tail.append(i)
-
-    return list_head + list_tail
-
-
 class Board(object):
 
     def __init__(self, root):
@@ -281,10 +254,56 @@ class AddModification(object):
         self.cancel()
 
 
-if __name__=='__main__':
+class EditableOptionMenu(tk.OptionMenu):
+    """OptionMenu which allows editing of menu items
+    """
+    def __init__(self, master, variable, value, *values, **kwargs):
+        """copy-paste-modified from Tkinter.OptionMenu, works the same way"""
+        kw = {"borderwidth": 2, "textvariable": variable,
+              "indicatoron": 1, "relief": tk.RAISED, "anchor": "c",
+              "highlightthickness": 2}
+        tk.Widget.__init__(self, master, "menubutton", kw)
+        self.widgetName = 'tk_optionMenu'
+        menu = self.__menu = tk.Menu(self, name="menu", tearoff=0)
+        self.menuname = menu._w
+        # 'command' is the only supported keyword
+        callback = kwargs.get('command')
+        if kwargs.has_key('command'):
+            del kwargs['command']
+        if kwargs:
+            raise TclError, 'unknown option -'+kwargs.keys()[0]
+        menu.add_command(label=value,
+                 command=tk._setit(variable, value, callback))
+        for v in values:
+            menu.add_command(label=v,
+                     command=tk._setit(variable, v, callback))
+        self["menu"] = menu
+        
+        self.menu=menu
+        self.variable=variable
+        self.callback=callback
+        
+    def insert_option(self, index, text):
+        """Insert an option to the menu.
+        Handling of index is the same as in Tkinter.Menu.insert_command()
+        """
+        self.menu.insert_command(index, label=text,
+            command=tk._setit(self.variable, text, self.callback))
 
-    root = Tix.Tk()
-    app = ModificationList(root, '/home/antonio/Projects/dist_project')
-    app.fill({'a/b/c.py':'C.py', 'a/b/d.py':'D.py'})
-    root.mainloop()
+    def delete_option(self, index1, index2=None):
+        """Delete options the same way as Tkinter.Menu.delete()"""
+        self.menu.delete(index1, index2)
+
+if __name__ == '__main__':
+    def print_it(event):
+        print strvar.get()
+    r = tk.Tk()
+    strvar = tk.StringVar()
+    test = ("none", "item1", "item2", "item3")
+    strvar.set(test[0])
+    om = EditableOptionMenu(r, strvar, *test, command=print_it)
+    om.pack()
+    om.insert_option(4, 'item4')
+    om.delete_option(2)
+    r.mainloop()
 

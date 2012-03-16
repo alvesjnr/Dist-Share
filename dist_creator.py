@@ -20,9 +20,11 @@ DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
 FOLDER_SEPARATOR = os.sep
 SPACE = '%20'
 
+
 def split_path(full_filename):
     return (FOLDER_SEPARATOR.join(full_filename.split(FOLDER_SEPARATOR)[:-1]),
             full_filename.split(FOLDER_SEPARATOR)[-1])
+
 
 class CreateCopyError(Exception):
     """Something wrong when copying"""
@@ -85,3 +87,31 @@ def process_license(license, extension):
     else:
         return comment_begin + license + comment_end + "\n\n"
 
+
+def normalize_items(items):
+    """ This function gets a list os directories and add the initial path:
+        input: ['/a/b/c', '/a/b/d', '/a/d/j']
+        output: ['a', 'a/b', 'a/b/c', 'a/b/d', 'a/d/j']
+    """
+    if not items:
+        return []
+
+    first_entry = items[0].split(FOLDER_SEPARATOR)
+
+    list_head = []
+    for i in range(len(first_entry)):
+        entry = FOLDER_SEPARATOR.join(first_entry[:i+1])
+        if entry:
+            if entry.startswith(FOLDER_SEPARATOR):
+                entry = entry.replace(FOLDER_SEPARATOR,'',1)
+            list_head.append(entry)
+
+    list_tail = []
+    for i in items[1:]:
+        if i.startswith(FOLDER_SEPARATOR):
+            i = i.replace(FOLDER_SEPARATOR,'',1)
+            list_tail.append(i)
+
+    return list_head + list_tail
+
+    
