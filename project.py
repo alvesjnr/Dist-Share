@@ -58,9 +58,10 @@ class Copy(object):
         file_to_delete = os.path.join(location,old_name)
         self.files_to_delete.append(file_to_delete)
 
-    def set_copy_location(self,path):
+    def set_copy_location(self,path,name=''):
         self.copy_location = path
-        _,self.project_name = split_path(path)
+        if not name:
+            _,self.copy_name = split_path(path)
 
     def create_new_copy(self):
         self.create_directories_struct()
@@ -81,7 +82,7 @@ class Copy(object):
 
         self.repo = git.Repo.init(self.copy_location)
         self.repo.git.add(self.copy_location)
-        self.repo.git.commit(m='First commit of the project %s' % self.project_name)
+        self.repo.git.commit(m='First commit of the project %s' % self.copy_name)
 
         self.repo.git.branch('update_branch')   # create an update branch to use when updating repository
         self.initialized = True
@@ -144,7 +145,7 @@ class Copy(object):
         for item in self.removed_files:
             self.repo.git.rm(item)
         try:
-            self.repo.git.commit(m='updating project %s' % self.project_name)
+            self.repo.git.commit(m='updating project %s' % self.copy_name)
         except git.GitCommandError:
             pass #Expected error
         self.update_master_branch()
@@ -229,9 +230,9 @@ class CopiesManager(object):
        self.source_path = path
        self.current_copy = None
 
-    def create_copy(self,copy_location):
+    def create_copy(self,copy_location,name=''):
         copy = Copy(self.source_path)
-        copy.set_copy_location(copy_location)
+        copy.set_copy_location(copy_location,name=name)
         # TODO: here you have to make several tests about the copy location!
         self.copies.append(copy)
 
@@ -266,7 +267,7 @@ class CopiesManager(object):
     def reset_renamed_file(self,full_filename):
         self.current_copy.remove_change(full_filename)
 
-    def set_current_copy(self,copy_path='',project_name=''):
+    def set_current_copy(self,copy_path='',copy_name=''):
         if copy_path:
             for i in self.copies:
                 if i.copy_location == copy_path:
@@ -274,9 +275,9 @@ class CopiesManager(object):
                     break
             else:
                 self.current_copy = None
-        elif project_name:
+        elif copy_name:
             for i in self.copies:
-                if i.project_name == project_name:
+                if i.copy_name == copy_name:
                     self.current_copy = i
                     break
             else:
@@ -354,8 +355,8 @@ class Project(object):
         self.client = pysvn.Client()
         self.client.checkout(url=url,path=path)
 
-    def add_new_copy(self,path):
-        self.copies_manager.create_copy(path)
+    def add_new_copy(self,path,name=''):
+        self.copies_manager.create_copy(path,name=name)
         self.copies_manager.set_current_copy(path)
 
     def create_current_copy(self):
