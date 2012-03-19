@@ -4,6 +4,8 @@ import Tkinter as tk
 import Tix
 import os
 
+from dist_creator import *
+
 FOLDER_SEPARATOR = os.sep
 SPACE = '%20'
 
