@@ -2,7 +2,7 @@
 import Tkinter as tk
 import Tix
 import ttk
-from dist_creator import *
+from functions import *
 import tkFileDialog, tkMessageBox
 
 from tree import CheckboxTree

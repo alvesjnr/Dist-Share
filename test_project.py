@@ -1,5 +1,5 @@
 from project import Project, CopiesManager, Copy
-from dist_creator import get_files
+from functions import get_files
 import unittest
 import filecmp
 import os

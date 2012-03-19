@@ -1,4 +1,4 @@
-from dist_creator import *
+from functions import *
 import filecmp
 import os
 import shutil

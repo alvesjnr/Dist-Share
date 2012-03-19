@@ -15,6 +15,7 @@ class App(object):
     def __init__(self,root):
 
         self.root = root
+        self.app_project = None
 
         #Frames definitions
         self.main_frame = tk.Frame(self.root, width=600, height=600)
@@ -93,8 +94,8 @@ class App(object):
         new_project_window.transient(self.root)
 
     def callback_new_project(self,project):
-        self.project = project
-        self.tree.fill(self.project.project_items)
+        self.app_project = AppProject(project)
+        self.tree.fill(self.app_project.project.project_items)
     
     def new_copy(self,event=None):
         new_copy_window = tk.Toplevel(self.root)
@@ -107,6 +108,21 @@ class App(object):
     
     def save_project(self, event=None):
         pass
+
+    def change_callback(self):
+        """ This method receives one signal from CheckboxTree informing that one change coulb have been happened
+        """ 
+        self.app_project.saved = False
+
+
+class AppProject(object):
+    """ AppProject is an object that represents an Project object inside the GUI
+        This separations exists to keep Project and GUI totally unconnected
+    """
+
+    def __init__(self,project):
+        self.project = project
+        self.saved = False
 
 
 class NewProject(tk.Frame):
@@ -160,7 +176,6 @@ class NewProject(tk.Frame):
             tkMessageBox.showinfo('','This is a valid svn repository')
         else:
             tkMessageBox.showwarning('Warn','This is not a valid SVN repository, or you dont have permission to check it out.')
-
 
     def load_path_event(self,Event=None):
         repository_path = tkFileDialog.askdirectory()

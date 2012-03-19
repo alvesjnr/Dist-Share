@@ -4,7 +4,7 @@ import Tkinter as tk
 import Tix
 import os
 
-from dist_creator import *
+from functions import *
 
 FOLDER_SEPARATOR = os.sep
 SPACE = '%20'
@@ -31,7 +31,6 @@ class CheckboxTree(object):
 
     def fill(self,items):
         self.make_list(normalize_items(items))
-        self.change_function = change_function
         self.all_items = self.cl.getselection()
         
     def make_list(self, items):
@@ -70,8 +69,7 @@ class CheckboxTree(object):
             self.cl.setstatus(parent, 'on')
             parent = FOLDER_SEPARATOR.join(parent.split(FOLDER_SEPARATOR)[:-1])
         
-        if self.change_function:
-            self.change_function()
+        self.parent.change_callback()
     
     def forget(self):
         self.cl.forget()
@@ -91,7 +89,7 @@ class CheckboxTree(object):
 if __name__ == '__main__':
 
     """just for test and exemplification"""
-    import dist_creator as dc
+    import functions as dc
     items = dc.get_files('/home/antonio/Projects/LightPy')
 
     root = Tix.Tk()
