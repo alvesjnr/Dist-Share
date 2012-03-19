@@ -60,7 +60,9 @@ class Copy(object):
 
     def set_copy_location(self,path,name=''):
         self.copy_location = path
-        if not name:
+        if name:
+            self.copy_name = name
+        else:
             _,self.copy_name = split_path(path)
 
     def create_new_copy(self):
@@ -391,4 +393,7 @@ class Project(object):
 
     def push_current_copy(self,remote='origin'):
         self.copies_manager.current_copy.push_copy(remote)
+
+    def set_current_copy(self,copy_path='',copy_name=''):
+        self.copies_manager.set_current_copy(copy_path,copy_name)
 

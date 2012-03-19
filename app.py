@@ -4,6 +4,7 @@
 import Tix
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
+import pickle
 
 from tree import CheckboxTree
 from components import ModificationList, EditableOptionMenu
@@ -29,9 +30,9 @@ class App(object):
         self.filemenu = tk.Menu(self.menubar, tearoff=0)
 
         #File menu
-        self.filemenu.add_command(label="Open Project", command=None)
-        self.filemenu.add_command(label="Save Project", command=None)
-        self.filemenu.add_command(label="Save Project As ...", command=None)
+        self.filemenu.add_command(label="Open Project", command=self.load_project)
+        self.filemenu.add_command(label="Save Project", command=self.save_project)
+        self.filemenu.add_command(label="Save Project As ...", command=self.save_project_as)
         self.filemenu.add_command(label="New Project", command=self.new_project)
         self.filemenu.add_separator()
         self.filemenu.add_command(label="Exit", command=self.root.quit)
@@ -59,7 +60,7 @@ class App(object):
         self.copy_manager_menu = EditableOptionMenu(self.copy_manager_frame,
                                                     self.copy_manager_var, 
                                                     *('-'), 
-                                                    command=self.change_copy)
+                                                    command=self.change_to_copy)
         self.copy_manager_update_button = tk.Button(self.copy_manager_frame, text='Update Copy')
         #self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project')
         self.copy_manager_label.pack(side=tk.LEFT)
@@ -108,27 +109,66 @@ class App(object):
         self.app_project.project.add_new_copy(path=path,name=name)
         self.copy_manager_menu.insert_option(0,name)
         self.copy_manager_var.set(name)
+        self.change_to_copy(name)
 
     def load_project(self, event=None):
-        pass
+        filename = tkFileDialog.askopenfile(defaultextension=".dist", parent=self.root)
+        if filename:
+            self.app_project = AppProject(dumped_app_project=filename.read())
+            self.tree.fill(self.app_project.project.project_items)
+            self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
     
     def save_project(self, event=None):
-        pass
+        if self.app_project:
+            if self.app_project.path:
+                with open(app_project.path) as f:
+                    f.write(self.app_project.dumps())
+                self.app_project.saved = True
+            else:
+                self.save_project_as()
+
+    def save_project_as(self):
+        filename = tkFileDialog.asksaveasfile(mode='w', defaultextension=".dist", parent=self.root)
+        self.app_project.path = filename.name
+        filename.write(self.app_project.dumps())
+        filename.close()
+        self.app_project.saved = True
 
     def change_callback(self):
         """ This method receives one signal from CheckboxTree informing that one change coulb have been happened
         """ 
-        if self.app_project.project.copies_manager.current_copy:
-            #change things of the curent copy
-            self.app_project.saved = False
-        else:
+        if not self.app_project.project.copies_manager.current_copy:
             self.tree.set_all_items()
             tkMessageBox.showinfo('No current copy','You must select a copy before avoid a file')
+            return
 
-    def change_copy(self,event=None):
+        self.app_project.saved = False
+        unselected_items = self.tree.get_checked_items(mode='off')
+        self.app_project.project.avoid_files(unselected_items)
+
+    def rename_file_callback(self):
+        """ This method receives one signal from ModificationsList informing that one change happened
+        """ 
+        renamed_files = self.listbox.get_modification_list()
+        self.app_project.project.copies_manager.current_copy.change_profile = renamed_files
+
+    def change_to_copy(self,name=''):
         """ This method binds the event of changing copy by the dropdown menu
         """ 
-        pass
+        self.listbox.reset_list()
+        if not name:
+            name = self.copy_manager_var.get()
+        if name == '-':
+            self.tree.set_all_items()
+        else:
+            self.app_project.project.set_current_copy(copy_name=name)
+            self.tree.set_all_items()
+            unselected_items = self.app_project.project.copies_manager.current_copy.avoided_files
+            self.tree.set_unchecked_items(unselected_items)
+
+            renamed_files = self.app_project.project.copies_manager.current_copy.change_profile
+            if renamed_files:
+                self.listbox.fill(renamed_files)
 
 
 class AppProject(object):
@@ -136,9 +176,24 @@ class AppProject(object):
         This separations exists to keep Project and GUI totally unconnected
     """
 
-    def __init__(self,project):
-        self.project = project
-        self.saved = False
+    def __init__(self,project=None,dumped_app_project=None):
+        if project:
+            self.project = project
+            self.saved = False
+            self.path = ''
+        elif dumped_app_project:
+            obj = pickle.loads(dumped_app_project)
+            self.path = obj['path']
+            self.project = Project(dumped_project=obj['project'])
+            self.saved = True
+        else:
+            raise BaseException("You must provide either a Project or a dumped AppProject object")
+
+    def dumps(self):
+        obj = {'project':self.project.dumps(),
+               'path':self.path
+               }
+        return pickle.dumps(obj)
 
 
 class NewProject(tk.Frame):
@@ -302,6 +357,13 @@ class LicenseBoard(tk.Frame):
         self.__Frame2 = tk.Frame(self)
         self.__Frame2.pack(side='top',anchor='w')
         self.__Text1 = tk.Text(self.__Frame2,width=100)
+        self.license_scroll = tk.Scrollbar(self.__Frame2)
+        self.__Text1 = tk.Text(self.__Frame2,
+                                   height=10)
+        self.__Text1.config(yscrollcommand=self.license_scroll.set)
+        self.license_scroll.config(command=self.__Text1.yview)
+        self.license_scroll.pack(side=tk.RIGHT,
+                                  fill=tk.Y)
         self.__Text1.pack(side='top',anchor='w')
         self.__Frame3 = tk.Frame(self)
         self.__Frame3.pack(side='top',anchor='w')

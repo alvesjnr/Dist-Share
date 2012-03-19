@@ -155,6 +155,7 @@ class ModificationList(object):
             self.listbox.delete('active')
             original_name,_ = self._split_text(change_descriptor)
             self.listbox.insert(0,"%s -> %s" % (original_name,new_name))
+            self.parent.rename_file_callback()
         
 
     def add_entry_window(self):
@@ -162,13 +163,14 @@ class ModificationList(object):
             to insert a new entry
         """
         add_entry_window = tk.Toplevel(self.root)
-        add_entry_widget = AddModification(path='/tmp',callback=self._add_item,root=add_entry_window)
+        add_entry_widget = AddModification(path=self.parent.app_project.project.path,callback=self._add_item,root=add_entry_window)
         add_entry_window.transient(self.root)
 
     def remove_entry(self):
         if len(self.listbox.curselection()):
             index = int(self.listbox.curselection()[0])
             self.listbox.delete(index, index)
+            self.parent.rename_file_callback()
 
     def fill(self,items):
         for item in items:
@@ -176,6 +178,8 @@ class ModificationList(object):
 
     def _add_item(self,original_name,new_name):
         self.listbox.insert(0,"%s -> %s" % (original_name,new_name))
+        self.parent.rename_file_callback()
+
 
     def get_modification_list(self):
 
@@ -184,6 +188,8 @@ class ModificationList(object):
     def _split_text(self,item):
             return item.split(' -> ')
 
+    def reset_list(self):
+        self.listbox.delete(0, tk.END)
 
 class AddModification(object):
 
@@ -191,6 +197,7 @@ class AddModification(object):
 
         self.root = root
         self.callback = callback
+        self.path = path
 
         self.frame = tk.Frame(self.root)
         self.frame_path = tk.Frame(self.frame)
@@ -228,7 +235,7 @@ class AddModification(object):
         self.frame.pack()
 
     def load(self):
-        filepath = tkFileDialog.askopenfilename()
+        filepath = tkFileDialog.askopenfilename(initialdir=self.path)
 
         if filepath:
             path,name = split_path(filepath)

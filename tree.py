@@ -8,6 +8,7 @@ from functions import *
 
 FOLDER_SEPARATOR = os.sep
 SPACE = '%20'
+SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
 
 class CheckboxTree(object):
     def __init__(self, root, parent, height=500, width=600):
@@ -36,8 +37,9 @@ class CheckboxTree(object):
     def make_list(self, items):
         
         for i in items:
-            self.cl.hlist.add(i,text=i)
-            self.cl.setstatus(i, 'on')
+            if not SVN_MARKER in i:
+                self.cl.hlist.add(i,text=i)
+                self.cl.setstatus(i, 'on')
         
         self.cl.autosetmode()
         for name in self.cl.getselection():
