@@ -13,8 +13,9 @@ FOLDER_SEPARATOR = os.sep
 
 class Copy(object):
 
-    def __init__(self,source_path, license=None):
+    def __init__(self,source_path, name, license=None):
 
+        self.copy_name = name
         self.items = get_files(source_path)
         self.source_path = source_path
         self.change_profile = {}
@@ -58,12 +59,8 @@ class Copy(object):
         file_to_delete = os.path.join(location,old_name)
         self.files_to_delete.append(file_to_delete)
 
-    def set_copy_location(self,path,name=''):
+    def set_copy_location(self,path):
         self.copy_location = path
-        if name:
-            self.copy_name = name
-        else:
-            _,self.copy_name = split_path(path)
 
     def create_new_copy(self):
         self.create_directories_struct()
@@ -233,8 +230,8 @@ class CopiesManager(object):
        self.current_copy = None
 
     def create_copy(self,copy_location,name=''):
-        copy = Copy(self.source_path)
-        copy.set_copy_location(copy_location,name=name)
+        copy = Copy(self.source_path,name=name)
+        copy.set_copy_location(copy_location)
         # TODO: here you have to make several tests about the copy location!
         self.copies.append(copy)
 
@@ -291,8 +288,11 @@ class CopiesManager(object):
 
     def remember_repo(self):
         for copy in self.copies:
-            copy.repo = git.Repo(copy.copy_location)
-
+            try:
+                copy.repo = git.Repo(copy.copy_location)
+            except git.InvalidGitRepositoryError:
+                #git repository was not created yet
+                pass
 
 def update_local_copy(path):
     process = subprocess.Popen(['svn','update',path],stdout=subprocess.PIPE,stdin=subprocess.PIPE)
