@@ -38,7 +38,7 @@ class App(object):
 
         #Copy menu
         self.copymenu = tk.Menu(self.menubar, tearoff=0)
-        self.copymenu.add_command(label="Add new",command=self.new_copy)
+        self.copymenu.add_command(label="Add new",command=self.new_copy, state=tk.DISABLED)
 
         #Tools menu
         self.toolsmenu = tk.Menu(self.menubar, tearoff=0)
@@ -59,7 +59,7 @@ class App(object):
         self.copy_manager_menu = EditableOptionMenu(self.copy_manager_frame,
                                                     self.copy_manager_var, 
                                                     *('-'), 
-                                                    command=None)
+                                                    command=self.change_copy)
         self.copy_manager_update_button = tk.Button(self.copy_manager_frame, text='Update Copy')
         #self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project')
         self.copy_manager_label.pack(side=tk.LEFT)
@@ -96,12 +96,16 @@ class App(object):
     def callback_new_project(self,project):
         self.app_project = AppProject(project)
         self.tree.fill(self.app_project.project.project_items)
+        self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
     
     def new_copy(self,event=None):
         new_copy_window = tk.Toplevel(self.root)
         new_copy_widget = NewCopy(new_copy_window)
         new_copy_widget.pack()
         new_copy_window.transient(self.root)
+
+    def callback_new_copy(self):
+        pass
 
     def load_project(self, event=None):
         pass
@@ -112,7 +116,17 @@ class App(object):
     def change_callback(self):
         """ This method receives one signal from CheckboxTree informing that one change coulb have been happened
         """ 
-        self.app_project.saved = False
+        if self.app_project.project.copies_manager.current_copy:
+            #change things of the curent copy
+            self.app_project.saved = False
+        else:
+            self.tree.set_all_items()
+            tkMessageBox.showinfo('No current copy','You must select a copy before avoid a file')
+
+    def change_copy(self,event=None):
+        """ This method binds the event of changing copy by the dropdown menu
+        """ 
+        pass
 
 
 class AppProject(object):
