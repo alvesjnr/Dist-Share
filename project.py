@@ -325,6 +325,7 @@ class Project(object):
             self.init_new_copy(url,path)
             self.copies_manager = CopiesManager(self.path)
             self.updated_files = set()
+            self.project_items = get_files(self.path)
 
         elif dumped_project:
             project = pickle.loads(dumped_project)
@@ -335,7 +336,7 @@ class Project(object):
             self.updated_files = project.updated_files
             self.path = project.path
             self.url = project.url
-
+            self.project_items = project.project_items
         else:
             raise Exception("It wouldn't possible to create a new project")
 
@@ -367,6 +368,7 @@ class Project(object):
 
     def update_project(self):
         updated_files = update_local_copy(self.path)
+        self.project_items = get_files(self.path)
         for item in updated_files:
             self.updated_files.add(item)
 
