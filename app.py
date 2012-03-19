@@ -19,7 +19,9 @@ class App(object):
         #Frames definitions
         self.main_frame = tk.Frame(self.root, width=600, height=600)
         self.project_frame = tk.Frame(self.main_frame)
-        self.license_frame = tk.Frame(self.main_frame)
+        self.bottom_frame = tk.Frame(self.main_frame)
+        self.license_frame = tk.Frame(self.bottom_frame)
+        self.status_frame = tk.Frame(self.bottom_frame)
 
         #adding menubar
         self.menubar = tk.Menu(self.root)
@@ -58,12 +60,12 @@ class App(object):
                                                     *('-'), 
                                                     command=None)
         self.copy_manager_update_button = tk.Button(self.copy_manager_frame, text='Update Copy')
-        self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project')
+        #self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project')
         self.copy_manager_label.pack(side=tk.LEFT)
         self.copy_manager_menu.pack(side=tk.LEFT)
         self.copy_manager_update_button.pack(side=tk.LEFT)
         tk.Frame(self.copy_manager_frame, width=102, height=2, bd=0, relief=tk.SUNKEN).pack(fill=tk.X, padx=25, pady=5, side=tk.LEFT) #separator
-        self.copy_manager_update_project_button.pack(side=tk.LEFT)
+        #self.copy_manager_update_project_button.pack(side=tk.LEFT)
 
         #project frame contains both tree and rename list
         self.project_frame_tree = tk.Frame(self.project_frame)
@@ -73,10 +75,15 @@ class App(object):
         self.project_frame_tree.pack(side=tk.LEFT)
         self.project_frame_list.pack(side=tk.LEFT)
 
+        #License Board
+        self.license_board = LicenseBoard(self.license_frame)
+        self.license_board.pack(anchor='w')
+
         #packing frames
         self.copy_manager_frame.pack(anchor='w')
         self.project_frame.pack()
-        self.license_frame.pack()
+        self.license_frame.pack(anchor='w')
+        self.bottom_frame.pack()
         self.main_frame.pack()
 
     def new_project(self,event=None):
@@ -183,12 +190,44 @@ class NewCopy(tk.Frame):
         pass
 
 
+class LicenseBoard(tk.Frame):
+
+    def __init__(self,Master=None,**kw):
+
+        apply(tk.Frame.__init__,(self,Master),kw)
+        tk.Label(self,text='License:').pack(anchor='w')
+        self.__Frame2 = tk.Frame(self)
+        self.__Frame2.pack(side='top',anchor='w')
+        self.__Text1 = tk.Text(self.__Frame2,width=100)
+        self.__Text1.pack(side='top',anchor='w')
+        self.__Frame3 = tk.Frame(self)
+        self.__Frame3.pack(side='top',anchor='w')
+        self.label_var = tk.StringVar()
+        self.label_var.set('')
+        self.__Label1 = tk.Label(self.__Frame3,anchor='w',textvariable=self.label_var)
+        self.__Label1.pack(side='left',anchor='w')
+        self.__Button1 = tk.Button(self.__Frame3,anchor='w',justify='left'
+            ,text='Load', command=self.load_license_event)
+        self.__Button1.pack(side='left',anchor='w')
+
+    def load_license_event(self,event=None):
+        fileobj = tkFileDialog.askopenfile()
+
+        if fileobj:
+            self.__Text1.delete(1.0,tk.END)
+            self.__Text1.insert(tk.END,fileobj.read())
+            self.label_var.set(fileobj.name)
+            
+
+
+
 def main():
     WINDOW_TITLE = 'Dist Share'
     root = Tix.Tk()
     root.wm_title('Untitled Project - '+WINDOW_TITLE)
     app = App(root)
     root.mainloop()
+
 
 if __name__ == '__main__':
     main()
