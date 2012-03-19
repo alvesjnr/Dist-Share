@@ -100,12 +100,14 @@ class App(object):
     
     def new_copy(self,event=None):
         new_copy_window = tk.Toplevel(self.root)
-        new_copy_widget = NewCopy(new_copy_window)
+        new_copy_widget = NewCopy(new_copy_window,self.callback_new_copy)
         new_copy_widget.pack()
         new_copy_window.transient(self.root)
 
-    def callback_new_copy(self):
-        pass
+    def callback_new_copy(self,path,name):
+        self.app_project.project.add_new_copy(path=path,name=name)
+        self.copy_manager_menu.insert_option(0,name)
+        self.copy_manager_var.set(name)
 
     def load_project(self, event=None):
         pass
@@ -227,8 +229,10 @@ class NewProject(tk.Frame):
 
 class NewCopy(tk.Frame):
 
-    def __init__(self,Master=None,**kw):
-        apply(Frame.__init__,(self,Master),kw)
+    def __init__(self,Master=None, callback=None, **kw):
+        apply(tk.Frame.__init__,(self,Master),kw)
+        self.callback = callback
+        self.root = Master
         self.__Frame3 = tk.Frame(self)
         self.__Frame3.pack(side='top')
         self.__Label2 = tk.Label(self.__Frame3,text='Copy Name:')
@@ -246,25 +250,47 @@ class NewCopy(tk.Frame):
         self.load_path_button.bind('<ButtonRelease-1>',self.event_load_path)
         self.__Frame4 = tk.Frame(self)
         self.__Frame4.pack(side='top')
-        self.okay = Button(self.__Frame4,text='Create Copy')
+        self.okay = tk.Button(self.__Frame4,text='Create Copy')
         self.okay.pack(side='left')
-        self.okay.bind('<ButtonRelease-1>',self.okay)
+        self.okay.bind('<ButtonRelease-1>',self.event_okay)
         self.cancel = tk.Button(self.__Frame4,text='Cancel')
         self.cancel.pack(side='left')
-        self.cancel.bind('<ButtonRelease-1>',self.cancel)
+        self.cancel.bind('<ButtonRelease-1>',self.event_cancel)
         self.__Frame1 = tk.Frame(self)
         self.__Frame1.pack(side='top')
         self.warning_text = tk.Text(self.__Frame1)
         self.warning_text.pack(side='top')
 
-    def cancel(self,Event=None):
+        #REMOVE remove it after tests
+        self.name_entry.insert(0,'copy')
+        self.path_entry.insert(0,'/tmp/copy')
+
+    def event_cancel(self,Event=None):
         pass
 
     def event_load_path(self,Event=None):
         pass
 
-    def okay(self,Event=None):
-        pass
+    def event_okay(self,Event=None):
+        name = self.name_entry.get()
+        path = self.path_entry.get()
+        if not self._check_copy_path(path):
+            tkMessageBox.showwarning('','Make sure that you have selected a valid path')
+        elif not self._check_copy_name(name):
+            tkMessageBox.showwarning('','Invalid copy name')
+        else:
+            self.callback(path,name)
+            self.root.destroy()
+    
+    def _check_copy_name(self,name):
+        #TODO
+        if name:
+            return True
+
+    def _check_copy_path(self,path):
+        #TODO
+        if path:
+            return True 
 
 
 class LicenseBoard(tk.Frame):
