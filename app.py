@@ -88,22 +88,34 @@ class App(object):
 
     def new_project(self,event=None):
         new_project_window = tk.Toplevel(self.root)
-        new_project_widget = NewProject(new_project_window)
+        new_project_widget = NewProject(new_project_window,callback=self.callback_new_project)
         new_project_widget.pack()
         new_project_window.transient(self.root)
+
+    def callback_new_project(self,project):
+        self.project = project
+        self.tree.fill(self.project.project_items)
     
     def new_copy(self,event=None):
         new_copy_window = tk.Toplevel(self.root)
-        new_copy_widget = NewProject(new_copy_window)
+        new_copy_widget = NewCopy(new_copy_window)
         new_copy_widget.pack()
         new_copy_window.transient(self.root)
+
+    def load_project(self, event=None):
+        pass
+    
+    def save_project(self, event=None):
+        pass
 
 
 class NewProject(tk.Frame):
 
-    def __init__(self,Master=None,**kw):
+    def __init__(self,Master=None,callback=None,**kw):
 
         apply(tk.Frame.__init__,(self,Master),kw)
+        self.root = Master
+        self.callback = callback
         self.top_frame = tk.Frame(self)
         self.top_frame.pack(side='top')
         self.__Label1 = tk.Label(self.top_frame,text='URL:')
@@ -126,26 +138,62 @@ class NewProject(tk.Frame):
         self.buttons_frame.pack(side='top')
         self.okay = tk.Button(self.buttons_frame,text='Create Project')
         self.okay.pack(side='left')
-        self.okay.bind('<ButtonRelease-1>',self.okay)
+        self.okay.bind('<ButtonRelease-1>',self.event_okay)
         self.cancel = tk.Button(self.buttons_frame,text='Cancel')
         self.cancel.pack(side='left')
-        self.cancel.bind('<ButtonRelease-1>',self.cancel)
+        self.cancel.bind('<ButtonRelease-1>',self.event_cancel)
         self.warning_frame = tk.Frame(self)
         self.warning_frame.pack(side='top')
         self.warning_text = tk.Text(self.warning_frame)
         self.warning_text.pack(side='top')
 
-    def cancel(self,Event=None):
-        pass
+        #REMOVE remove it after tests
+        self.url_entry.insert(0,'svn://alvesjnr@localhost/tmp/svnrepo')
+        self.pth_entry.insert(0,'/tmp/nuca')
+
+    def event_cancel(self,Event=None):
+        self.root.destroy()
 
     def check_url_event(self,Event=None):
-        pass
+        url = self.url_entry.get()
+        if self._svn_url_okay(url):
+            tkMessageBox.showinfo('','This is a valid svn repository')
+        else:
+            tkMessageBox.showwarning('Warn','This is not a valid SVN repository, or you dont have permission to check it out.')
+
 
     def load_path_event(self,Event=None):
-        pass
+        repository_path = tkFileDialog.askdirectory()
+        if self._project_path_okay(repository_path):
+            self.pth_entry.delete(0)
+            self.pth_entry.insert(0,repository_path)
 
-    def okay(self,Event=None):
-        pass
+    def event_okay(self,Event=None):
+        project_path = self.pth_entry.get()
+        project_url = self.url_entry.get()
+
+        if self._svn_url_okay(project_url) and self._project_path_okay(project_path):
+            try:
+                project = Project(path=project_path,url=project_url)
+            except:
+                tkMessageBox.showerror('Error','It was not possible to create a new project. \nPlease check svn URL and folder path.')
+            else:
+                self.callback(project)
+                self.root.destroy()
+        else:
+            tkMessageBox.showerror('Error','It was not possible to create a new project. \nPlease check svn URL and folder path.')
+
+
+    def _svn_url_okay(self,url):
+        #TODO: check if url is valid and if url is a valid svn.
+        #      also check for permissions to checkout this svn rrepository
+        if url:
+            return True
+
+    def _project_path_okay(self,path):
+        #TODO chack is path is valid, and if the user has permission to write on it
+        if path:
+            return True
 
 
 class NewCopy(tk.Frame):
@@ -218,8 +266,6 @@ class LicenseBoard(tk.Frame):
             self.__Text1.insert(tk.END,fileobj.read())
             self.label_var.set(fileobj.name)
             
-
-
 
 def main():
     WINDOW_TITLE = 'Dist Share'
