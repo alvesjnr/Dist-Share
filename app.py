@@ -61,7 +61,7 @@ class App(object):
                                                     self.copy_manager_var, 
                                                     *('-'), 
                                                     command=self.change_to_copy)
-        self.copy_manager_update_button = tk.Button(self.copy_manager_frame, text='Update Copy')
+        self.copy_manager_update_button = tk.Button(self.copy_manager_frame, text='Refresh', command=self.refresh_copy)
         #self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project')
         self.copy_manager_label.pack(side=tk.LEFT)
         self.copy_manager_menu.pack(side=tk.LEFT)
@@ -80,11 +80,16 @@ class App(object):
         #License Board
         self.license_board = LicenseBoard(self.license_frame,change_callback=self.update_license)
         self.license_board.pack(anchor='w')
+        self.license_frame.pack(anchor='w',side=tk.LEFT)
+
+        #status frame
+        self.status_board = StatusBoard(Master=self.status_frame,update_callback=self.update_project, width=602, height=2, bd=0, relief=tk.SUNKEN)
+        self.status_board.pack(side=tk.LEFT, fill=tk.X)
+        self.status_frame.pack(side=tk.LEFT)
 
         #packing frames
         self.copy_manager_frame.pack(anchor='w')
         self.project_frame.pack()
-        self.license_frame.pack(anchor='w')
         self.bottom_frame.pack()
         self.main_frame.pack()
 
@@ -128,6 +133,7 @@ class App(object):
                 self.app_project.saved = True
             else:
                 self.save_project_as()
+            self.app_project.update_avoided_files()
 
     def save_project_as(self):
         filename = tkFileDialog.asksaveasfile(mode='w', defaultextension=".dist", parent=self.root)
@@ -146,7 +152,7 @@ class App(object):
 
         self.app_project.saved = False
         unselected_items = self.tree.get_checked_items(mode='off')
-        self.app_project.project.avoid_files(unselected_items)
+        self.app_project.project.copies_manager.current_copy.avoided_files = unselected_items
 
     def rename_file_callback(self):
         """ This method receives one signal from ModificationsList informing that one change happened
@@ -162,11 +168,14 @@ class App(object):
             name = self.copy_manager_var.get()
         if name == '-':
             self.tree.set_all_items()
+            self.app_project.name = '-'
+            self.license_board.fill('')
         else:
             self.app_project.project.set_current_copy(copy_name=name)
             self.tree.set_all_items()
             unselected_items = self.app_project.project.copies_manager.current_copy.avoided_files
             self.tree.set_unchecked_items(unselected_items)
+            self.app_project.name = self.app_project.project.copies_manager.current_copy.copy_name
 
             renamed_files = self.app_project.project.copies_manager.current_copy.change_profile
             if renamed_files:
@@ -175,8 +184,21 @@ class App(object):
             self.license_board.fill(self.app_project.project.copies_manager.current_copy.license)
 
     def update_license(self,event=None):
-        self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
+        if self.app_project.name != '-':
+            self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
 
+    def update_project(self,event=None):
+        self.app_project.project.update_project()
+        try:
+            self.app_project.project.update_copies()
+        except:
+            pass
+
+    def refresh_copy(self,event=None):
+        avoided_files = self.app_project.avoided_files[self.copy_manager_var.get()]
+        self.app_project.project.copies_manager.current_copy.avoided_files = avoided_files
+        self.tree.set_all_items()
+        self.tree.set_unchecked_items(avoided_files)
 
 class AppProject(object):
     """ AppProject is an object that represents an Project object inside the GUI
@@ -188,19 +210,28 @@ class AppProject(object):
             self.project = project
             self.saved = False
             self.path = ''
+            self.name = '-'
         elif dumped_app_project:
             obj = pickle.loads(dumped_app_project)
             self.path = obj['path']
             self.project = Project(dumped_project=obj['project'])
             self.saved = True
+            self.name = '-'
         else:
             raise BaseException("You must provide either a Project or a dumped AppProject object")
+
+        self.update_avoided_files()
 
     def dumps(self):
         obj = {'project':self.project.dumps(),
                'path':self.path
                }
         return pickle.dumps(obj)
+
+    def update_avoided_files(self):
+        self.avoided_files = {}
+        for copy in self.project.copies_manager.copies:
+            self.avoided_files[copy.copy_name] = copy.avoided_files
 
 
 class NewProject(tk.Frame):
@@ -402,7 +433,42 @@ class LicenseBoard(tk.Frame):
 
     def get_license(self):
         return self.__Text1.get(1.0,tk.END)
-            
+
+
+class StatusBoard(tk.Frame):
+
+    def __init__(self,Master=None,update_callback=None,**kw):
+
+        apply(tk.Frame.__init__,(self,Master),kw)
+        self.__Frame2 = tk.Frame(self)
+        self.__Frame2.pack(side='top')
+        self.__Label1 = tk.Label(self.__Frame2,anchor='w',text='URL:')
+        self.__Label1.pack(side='left')
+        self.svn_var = tk.StringVar()
+        self.svn_label = tk.Label(self.__Frame2,anchor='w'
+            ,textvariable=self.svn_var)
+        self.svn_label.pack(side='left')
+        self.__Frame1 = tk.Frame(self)
+        self.__Frame1.pack(side='top')
+        self.__Label3 = tk.Label(self.__Frame1,anchor='w',text='Local Copy:')
+        self.__Label3.pack(side='left')
+        self.path_var = tk.StringVar()
+        self.path_label = tk.Label(self.__Frame1,anchor='w'
+            ,textvariable=self.path_var)
+        self.path_label.pack(side='left')
+        self.__Frame4 = tk.Frame(self)
+        self.__Frame4.pack(side='top')
+        self.__Label5 = tk.Label(self.__Frame4,anchor='w',text='Current Copy:')
+        self.__Label5.pack(side='left')
+        self.copy_path_var = tk.StringVar()
+        self.copy_path = tk.Label(self.__Frame4,anchor='w'
+            ,textvariable=self.copy_path_var)
+        self.copy_path.pack(side='left')
+        self.__Frame3 = tk.Frame(self)
+        self.__Frame3.pack(side='top')
+        self.__Button1 = tk.Button(self.__Frame3,text='Update Project',command=update_callback)
+        self.__Button1.pack(side='bottom')            
+
 
 def main():
     WINDOW_TITLE = 'Dist Share'
