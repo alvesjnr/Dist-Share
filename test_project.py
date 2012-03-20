@@ -177,9 +177,7 @@ class ProjectTest(unittest.TestCase):
         os.system('svn rm /tmp/workspace/svnrepo/temp')
         os.system('svn commit /tmp/workspace/svnrepo -m "removing in repo"')
         p.update_project()
-        p.update_copies()
         diff = compare_tree('/tmp/workspace/svnrepo','/tmp/blah')
-        import pdb; pdb.set_trace()
         self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
 
     def test_managing_two_copies(self):

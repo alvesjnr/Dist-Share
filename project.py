@@ -200,6 +200,8 @@ class Copy(object):
                 self.repo.git.commit(filepath,m='removing file %s' % filepath)
             except:
                 pass # expected error
+            if origin_file_path in self.avoided_files:
+                self.avoided_files.remove(origin_file_path)
 
     def get_copy_path(self,origin_path):
         """ get the origin file path and return its copy equivalent

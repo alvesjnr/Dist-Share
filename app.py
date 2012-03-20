@@ -125,6 +125,7 @@ class App(object):
         filename = tkFileDialog.askopenfile(defaultextension=".dist", parent=self.root)
         if filename:
             self.app_project = AppProject(dumped_app_project=filename.read())
+            self.app_project.project.update_project()
             self.tree.fill(self.app_project.project.project_items)
             self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
             for copy in self.app_project.project.copies_manager.copies:
