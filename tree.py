@@ -81,6 +81,8 @@ class CheckboxTree(object):
     
     def set_unchecked_items(self, items):
         for item in items:
+            if item.startswith(FOLDER_SEPARATOR):
+                item = item.replace(FOLDER_SEPARATOR,'',1)
             self.cl.setstatus(item, 'off')
     
     def set_all_items(self):

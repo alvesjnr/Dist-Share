@@ -196,6 +196,10 @@ class Copy(object):
                 os.remove(filepath)
             else:
                 shutil.rmtree(filepath)
+            try:
+                self.repo.git.commit(filepath,m='removing file %s' % filepath)
+            except:
+                pass # expected error
 
     def get_copy_path(self,origin_path):
         """ get the origin file path and return its copy equivalent
@@ -233,6 +237,11 @@ class Copy(object):
             shutil.copy2(filename,copy_name)
             if self.license:
                 add_license(copy_name,self.license)
+
+    def update_license(self):
+        for item in self.items:
+            if item not in self.avoided_files and os.path.isfile(item):
+                self.update_file(item)
 
 
 class CopiesManager(object):
@@ -309,10 +318,17 @@ class CopiesManager(object):
                 #git repository was not created yet
                 pass
 
+    def remove_files_from_copy(self,items):
+        for copy in self.copies:
+            for item in items:
+                copy.remove_file(item)
+
+
 def update_local_copy(path):
     process = subprocess.Popen(['svn','update',path],stdout=subprocess.PIPE,stdin=subprocess.PIPE)
     output,errors = process.communicate()
     updated_files = []
+    deleted_files = []
     if not errors:
         output = output.split('\n')
         for item in output:
@@ -320,11 +336,13 @@ def update_local_copy(path):
                 candidate = ' '.join(item.split()[1:])
                 if os.path.exists(candidate):
                     updated_files.append(candidate)
+            elif item.startswith('D'):
+                item = ' '.join(item.split()[1:])
+                deleted_files.append(item)
     else:
         raise Exception('Unknow error when updating local copy: %s' % errors)
 
-    return updated_files
-
+    return updated_files,deleted_files
 
 """
     Just some definitions for the project class:
@@ -385,10 +403,13 @@ class Project(object):
         self.updated_files = set()
 
     def update_project(self):
-        updated_files = update_local_copy(self.path)
+        updated_files,deleted_files = update_local_copy(self.path)
         self.project_items = get_files(self.path)
         for item in updated_files:
             self.updated_files.add(item)
+        deleted_files.sort(key=lambda x : x.count(FOLDER_SEPARATOR))
+        deleted_files.reverse()
+        self.copies_manager.remove_files_from_copy(deleted_files)
 
     def avoid_files(self,files):
         self.copies_manager.avoid_files(files)

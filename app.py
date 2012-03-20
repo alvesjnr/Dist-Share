@@ -78,7 +78,7 @@ class App(object):
         self.project_frame_list.pack(side=tk.LEFT)
 
         #License Board
-        self.license_board = LicenseBoard(self.license_frame,change_callback=self.update_license)
+        self.license_board = LicenseBoard(self.license_frame,change_callback=self.update_license,update_license_event=self.update_license_event)
         self.license_board.pack(anchor='w')
         self.license_frame.pack(anchor='w',side=tk.LEFT)
 
@@ -142,6 +142,10 @@ class App(object):
 
     def save_project_as(self):
         filename = tkFileDialog.asksaveasfile(mode='w', defaultextension=".dist", parent=self.root)
+
+        if filename is None:
+            return
+
         self.app_project.path = filename.name
         filename.write(self.app_project.dumps())
         filename.close()
@@ -209,7 +213,7 @@ class App(object):
 
     def force_create_copy(self):
         if self.app_project.locked_copy:
-            if tkMessageBox.askyesno('Create current copy','This action will fisically create the current copy. Do you want to proceed anyway?'):
+            if tkMessageBox.askyesno('Create current copy','This action will fisically creates the current copy. Do you want to proceed anyway?'):
                 self.app_project.project.create_current_copy()
                 self.app_project.locked_copy = False
                 return True
@@ -217,6 +221,11 @@ class App(object):
                 return False
         else:
             return True
+
+    def update_license_event(self):
+        """ Forces rewriting license in all files of the copy
+        """
+        self.app_project.project.copies_manager.current_copy.update_license()
 
 
 class AppProject(object):
@@ -408,7 +417,7 @@ class NewCopy(tk.Frame):
 
 class LicenseBoard(tk.Frame):
 
-    def __init__(self,Master=None, change_callback=None,**kw):
+    def __init__(self,Master=None, change_callback=None,update_license_event=None,**kw):
 
         apply(tk.Frame.__init__,(self,Master),kw)
         self.change_callback = change_callback
@@ -434,6 +443,9 @@ class LicenseBoard(tk.Frame):
         self.__Button1 = tk.Button(self.__Frame3,anchor='w',justify='left'
             ,text='Load', command=self.load_license_event)
         self.__Button1.pack(side='left',anchor='w')
+        self.__Button2 = tk.Button(self.__Frame3,anchor='w',justify='left'
+            ,text='Update License', command=update_license_event)
+        self.__Button2.pack(side='left',anchor='w')
 
     def load_license_event(self,event=None):
         fileobj = tkFileDialog.askopenfile()
