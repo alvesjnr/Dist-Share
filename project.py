@@ -139,9 +139,10 @@ class Copy(object):
 
         for item in self.items:
             if SVN_MARKER in item:
-                continue    
+                continue 
             if not os.path.exists(self.get_copy_path(item)) and item not in self.avoided_files:
                 self.copy_new_file(item)
+
 
         for item in changed_files:
             self.update_file(item)
@@ -156,15 +157,9 @@ class Copy(object):
         for item in self.removed_files:
             try:
                 self.repo.git.rm(item)
+                self.repo.git.commit(m='updating project %s' % self.copy_name)
             except:
                 pass # expected error
-        try:
-            self.repo.git.commit(m='updating project %s' % self.copy_name)
-        except git.GitCommandError:
-            pass #Expected error
-        self.update_master_branch()
-
-    def update_master_branch(self):
         self.repo.git.checkout('master')
         self.repo.git.merge('update_branch')
         self.repo.git.add(self.copy_location)
@@ -186,7 +181,7 @@ class Copy(object):
             self.removed_files.append(file_path)
             os.remove(file_path)
 
-    def remove_file(self,origin_file_path):
+    def remove_file(self,origin_file_path,remove_from_avoided_files=False):
         """ get the origin file path and remove this file from copy
         """
         filepath = self.get_copy_path(origin_file_path)
@@ -200,7 +195,7 @@ class Copy(object):
                 self.repo.git.commit(filepath,m='removing file %s' % filepath)
             except:
                 pass # expected error
-            if origin_file_path in self.avoided_files:
+            if remove_from_avoided_files and origin_file_path in self.avoided_files:
                 self.avoided_files.remove(origin_file_path)
 
     def get_copy_path(self,origin_path):
@@ -323,7 +318,7 @@ class CopiesManager(object):
     def remove_files_from_copy(self,items):
         for copy in self.copies:
             for item in items:
-                copy.remove_file(item)
+                copy.remove_file(item,remove_from_avoided_files=True)
 
 
 def update_local_copy(path):

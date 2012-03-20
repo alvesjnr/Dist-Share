@@ -132,7 +132,10 @@ class App(object):
                 self.copy_manager_menu.insert_option(0,copy.copy_name)
     
     def save_project(self, event=None):
+
         if self.app_project:
+            if not self.force_create_copy():
+                return
             if self.app_project.path:
                 with open(self.app_project.path,'w') as f:
                     f.write(self.app_project.dumps())
@@ -142,6 +145,8 @@ class App(object):
             self.app_project.update_avoided_files()
 
     def save_project_as(self):
+        if not self.force_create_copy():
+            return
         filename = tkFileDialog.asksaveasfile(mode='w', defaultextension=".dist", parent=self.root)
 
         if filename is None:
@@ -162,13 +167,44 @@ class App(object):
 
         self.app_project.saved = False
         unselected_items = self.tree.get_checked_items(mode='off')
-        self.app_project.project.copies_manager.current_copy.avoided_files = unselected_items
+        current_avoided = self.app_project.project.copies_manager.current_copy.avoided_files
+
+        files_to_avoid = [item for item in unselected_items if item not in current_avoided]
+        files_to_unavoid = [item for item in current_avoided if item not in unselected_items]
+
+        for item in files_to_avoid:
+            self.app_project.project.copies_manager.current_copy.avoid_file(item)
+        for item in files_to_unavoid:
+            self.app_project.project.copies_manager.current_copy.unavoid_file(item)
 
     def rename_file_callback(self):
         """ This method receives one signal from ModificationsList informing that one change happened
         """ 
+        def get_modifications(old,new):
+            remove = {}
+            add = {}
+            for i in new:
+                if i in old:
+                    if old[i] != new[i]:
+                        remove[i] = old[i]
+                        add[i] = new[i]
+                else:
+                    add[i] = new[i]
+
+            for i in old:
+                if i not in new:
+                    remove[i] = old[i]
+            
+            return add,remove
+
         renamed_files = self.listbox.get_modification_list()
-        self.app_project.project.copies_manager.current_copy.change_profile = renamed_files
+        current_change_profile = self.app_project.project.copies_manager.current_copy.change_profile
+
+        to_add,to_remove = get_modifications(current_change_profile,renamed_files)
+        for i in to_remove:
+            self.app_project.project.copies_manager.current_copy.remove_change(i,to_remove[i])
+        for i in to_add:
+            self.app_project.project.copies_manager.current_copy.add_change(i,to_add[i])
 
     def change_to_copy(self,name=''):
         """ This method binds the event of changing copy by the dropdown menu
