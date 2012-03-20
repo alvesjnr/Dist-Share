@@ -138,6 +138,21 @@ class ProjectTest(unittest.TestCase):
         p.update_copies()
         self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha','/tmp/blah/nha'))
 
+    def test_update_copy_removing_file(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.create_current_copy()
+        # os.system('date > /tmp/workspace/svnrepo/nha')
+        # os.system('date +%N >> /tmp/workspace/svnrepo/nha')
+        # os.system('svn commit /tmp/workspace/svnrepo/nha -m "changing things in repo"')
+        p.update_project()
+        p.update_copies()
+        p.avoid_files(['/tmp/test_place/nha'])
+        p.update_project()
+        p.update_copies()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertTrue(diff['just_on_left'] == ['/nha'] and diff['just_on_right'] == [])
+
     def test_managing_two_copies(self):
         p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
         p.add_new_copy('/tmp/blah')

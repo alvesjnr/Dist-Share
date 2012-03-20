@@ -114,7 +114,12 @@ class App(object):
         self.app_project.project.add_new_copy(path=path,name=name)
         self.copy_manager_menu.insert_option(0,name)
         self.copy_manager_var.set(name)
-        self.change_to_copy(name)
+        self.app_project.locked_copy = True
+        self.app_project.project.set_current_copy(copy_name=name)
+        self.tree.set_all_items()
+        self.app_project.name = self.app_project.project.copies_manager.current_copy.copy_name
+        self.license_board.fill('')
+        self.app_project.update_avoided_files()
 
     def load_project(self, event=None):
         filename = tkFileDialog.askopenfile(defaultextension=".dist", parent=self.root)
@@ -145,7 +150,7 @@ class App(object):
     def change_callback(self):
         """ This method receives one signal from CheckboxTree informing that one change coulb have been happened
         """ 
-        if not self.app_project.project.copies_manager.current_copy:
+        if self.app_project.name == '-':
             self.tree.set_all_items()
             tkMessageBox.showinfo('No current copy','You must select a copy before avoid a file')
             return
@@ -163,6 +168,9 @@ class App(object):
     def change_to_copy(self,name=''):
         """ This method binds the event of changing copy by the dropdown menu
         """ 
+        if not self.force_create_copy():
+            return
+
         self.listbox.reset_list()
         if not name:
             name = self.copy_manager_var.get()
@@ -189,16 +197,27 @@ class App(object):
 
     def update_project(self,event=None):
         self.app_project.project.update_project()
-        try:
-            self.app_project.project.update_copies()
-        except:
-            pass
+        if not self.force_create_copy():
+            return
+        self.app_project.project.update_copies()
 
     def refresh_copy(self,event=None):
         avoided_files = self.app_project.avoided_files[self.copy_manager_var.get()]
         self.app_project.project.copies_manager.current_copy.avoided_files = avoided_files
         self.tree.set_all_items()
         self.tree.set_unchecked_items(avoided_files)
+
+    def force_create_copy(self):
+        if self.app_project.locked_copy:
+            if tkMessageBox.askyesno('Create current copy','This action will fisically create the current copy. Do you want to proceed anyway?'):
+                self.app_project.project.create_current_copy()
+                self.app_project.locked_copy = False
+                return True
+            else:
+                return False
+        else:
+            return True
+
 
 class AppProject(object):
     """ AppProject is an object that represents an Project object inside the GUI
@@ -211,12 +230,14 @@ class AppProject(object):
             self.saved = False
             self.path = ''
             self.name = '-'
+            self.locked_copy = False    # A locked copy is a copy that have not been fisically copied yet
         elif dumped_app_project:
             obj = pickle.loads(dumped_app_project)
             self.path = obj['path']
             self.project = Project(dumped_project=obj['project'])
             self.saved = True
             self.name = '-'
+            self.locked_copy = False
         else:
             raise BaseException("You must provide either a Project or a dumped AppProject object")
 
@@ -306,7 +327,6 @@ class NewProject(tk.Frame):
                 self.root.destroy()
         else:
             tkMessageBox.showerror('Error','It was not possible to create a new project. \nPlease check svn URL and folder path.')
-
 
     def _svn_url_okay(self,url):
         #TODO: check if url is valid and if url is a valid svn.

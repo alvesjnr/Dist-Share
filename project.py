@@ -9,13 +9,17 @@ import pickle
 import StringIO
 
 FOLDER_SEPARATOR = os.sep
+SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
 
 
 class Copy(object):
 
-    def __init__(self,source_path, name, license=None):
+    def __init__(self,source_path, name='', license=None):
 
-        self.copy_name = name
+        if name:
+            self.copy_name = name
+        else:
+            self.copy_name = source_path
         self.items = get_files(source_path)
         self.source_path = source_path
         self.change_profile = {}
@@ -65,6 +69,8 @@ class Copy(object):
     def create_new_copy(self):
         self.create_directories_struct()
         for item in self.items:
+            if SVN_MARKER in item:
+                continue   
             if item in self.avoided_files:
                 continue
             if os.path.isfile(item):
@@ -126,10 +132,14 @@ class Copy(object):
         self.items = updated_items
 
         self.removed_files = []
+        self.avoided_files.sort(key=lambda x: x.count(FOLDER_SEPARATOR))
+        self.avoided_files.reverse()
         for item in self.avoided_files:
             self.remove_file(item)
 
         for item in self.items:
+            if SVN_MARKER in item:
+                continue    
             if not os.path.exists(self.get_copy_path(item)) and item not in self.avoided_files:
                 self.copy_new_file(item)
 
@@ -141,8 +151,13 @@ class Copy(object):
         self.files_to_delete = []
 
         self.repo.git.add(self.copy_location)
+        self.removed_files.sort(key=lambda x: x.count(FOLDER_SEPARATOR))
+        self.removed_files.reverse()     
         for item in self.removed_files:
-            self.repo.git.rm(item)
+            try:
+                self.repo.git.rm(item)
+            except:
+                pass # expected error
         try:
             self.repo.git.commit(m='updating project %s' % self.copy_name)
         except git.GitCommandError:

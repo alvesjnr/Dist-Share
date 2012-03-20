@@ -77,7 +77,7 @@ class CheckboxTree(object):
         self.cl.forget()
 
     def get_checked_items(self, mode='on'):
-        return self.cl.getselection(mode=mode)
+        return [os.path.join(FOLDER_SEPARATOR,item) for item in self.cl.getselection(mode=mode)]
     
     def set_unchecked_items(self, items):
         for item in items:
