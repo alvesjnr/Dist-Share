@@ -36,7 +36,7 @@ class App(object):
         self.filemenu.add_command(label="Save Project As ...", command=self.save_project_as)
         self.filemenu.add_command(label="New Project", command=self.new_project)
         self.filemenu.add_separator()
-        self.filemenu.add_command(label="Exit", command=self.root.quit)
+        self.filemenu.add_command(label="Exit", command=self.event_exit)
 
         #Copy menu
         self.copymenu = tk.Menu(self.menubar, tearoff=0)
@@ -94,7 +94,13 @@ class App(object):
         self.bottom_frame.pack()
         self.main_frame.pack()
 
+    def event_exit(self,event=None):
+        if self.check_for_saving:
+            self.root.quit()
+
     def new_project(self,event=None):
+        if not self.check_for_saving():
+            return
         new_project_window = tk.Toplevel(self.root)
         new_project_widget = NewProject(new_project_window,callback=self.callback_new_project)
         new_project_widget.pack()
@@ -123,6 +129,10 @@ class App(object):
         self.app_project.update_avoided_files()
 
     def load_project(self, event=None):
+
+        if self.app_project and not self.check_for_saving():
+            return
+
         filename = tkFileDialog.askopenfile(defaultextension=".dist", parent=self.root)
         if filename:
             self.app_project = AppProject(dumped_app_project=filename.read())
@@ -173,6 +183,7 @@ class App(object):
         files_to_avoid = [item for item in unselected_items if item not in current_avoided]
         files_to_unavoid = [item for item in current_avoided if item not in unselected_items]
 
+        #FIXME: refresh is not working!
         for item in files_to_avoid:
             self.app_project.project.copies_manager.current_copy.avoid_file(item)
         for item in files_to_unavoid:
@@ -206,6 +217,7 @@ class App(object):
             self.app_project.project.copies_manager.current_copy.remove_change(i,to_remove[i])
         for i in to_add:
             self.app_project.project.copies_manager.current_copy.add_change(i,to_add[i])
+        self.app_project.saved = False
 
     def change_to_copy(self,name=''):
         """ This method binds the event of changing copy by the dropdown menu
@@ -234,10 +246,13 @@ class App(object):
             self.license_board.fill(self.app_project.project.copies_manager.current_copy.license)
 
     def update_license(self,event=None):
-        if self.app_project.name != '-':
-            self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
+        if self.force_save():
+            if self.app_project.name != '-':
+                self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
 
     def update_project(self,event=None):
+        if not self.force_save():
+            return
         self.app_project.project.update_project()
         self.tree.reset_tree()
         self.tree.fill(self.app_project.project.project_items)
@@ -269,7 +284,27 @@ class App(object):
     def update_license_event(self):
         """ Forces rewriting license in all files of the copy
         """
-        self.app_project.project.copies_manager.current_copy.update_license()
+        if self.force_save():
+            self.app_project.project.copies_manager.current_copy.update_license()
+
+    def check_for_saving(self):
+        if not self.app_project.saved:
+            if tkMessageBox.askyesno('Save project?','This project has unsaved changes. Do you want to proceed and lost those changes?'):
+                return True
+            else:
+                return False
+        else:
+            return True
+
+    def force_save(self):
+        if not self.app_project.saved:
+            if tkMessageBox.askyesno('Save project?','This project has unsaved changes. You must save then before continue. Do you want to save and continue?'):
+                self.save_project()
+                return True
+            else:
+                return False
+        else:
+            return True
 
 
 class AppProject(object):
@@ -304,6 +339,7 @@ class AppProject(object):
 
     def update_avoided_files(self):
         self.avoided_files = {}
+        import pdb; pdb.set_trace()
         for copy in self.project.copies_manager.copies:
             self.avoided_files[copy.copy_name] = copy.avoided_files
 
