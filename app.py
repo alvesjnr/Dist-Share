@@ -313,6 +313,8 @@ class App(object):
             self.app_project.project.copies_manager.current_copy.update_license()
 
     def check_for_saving(self):
+        if self.app_project is None:
+            return True
         if not self.app_project.saved:
             if tkMessageBox.askyesno('Save project?','This project has unsaved changes. Do you want to proceed and lost those changes?'):
                 return True
