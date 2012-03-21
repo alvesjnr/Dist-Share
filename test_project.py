@@ -1,4 +1,4 @@
-from project import Project, CopiesManager, Copy
+from project import Project, CopiesManager, Copy, DupllicatedCopyNameException
 from functions import get_files
 import unittest
 import filecmp
@@ -191,6 +191,18 @@ class ProjectTest(unittest.TestCase):
         self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
         diff = compare_tree('/tmp/test_place','/tmp/blah2')
         self.assertTrue(diff['just_on_left'] == ['/nha.c'] and diff['just_on_right'] == [])
+
+    def test_two_copies_with_same_name(self):
+        p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah',name='copy')
+        p.create_current_copy()
+        self.assertRaises(DupllicatedCopyNameException,p.add_new_copy,*('/tmp/blah2','copy'))
+        p.add_new_copy('/tmp/blah2','copy2')
+        p.create_current_copy()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
+        diff = compare_tree('/tmp/test_place','/tmp/blah2')
+        self.assertFalse(diff['just_on_left'] or diff['just_on_right'])
 
     def test_updating_two_copies(self):
         p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')

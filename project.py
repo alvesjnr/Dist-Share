@@ -349,6 +349,10 @@ def update_local_copy(path):
 
     return updated_files,deleted_files,new_files
 
+class DupllicatedCopyNameException(BaseException):
+    """
+    This copy name already exists
+    """
 
 class Project(object):
 
@@ -391,8 +395,11 @@ class Project(object):
         self.client.checkout(url=url,path=path)
 
     def add_new_copy(self,path,name=''):
+        for copy in self.copies_manager.copies:
+                if name == copy.copy_name:
+                    raise DupllicatedCopyNameException()
         self.copies_manager.create_copy(path,name=name)
-        if name:
+        if name: 
             self.copies_manager.set_current_copy(copy_name=name)
         else:
             self.copies_manager.set_current_copy(copy_path=path)
