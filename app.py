@@ -8,7 +8,7 @@ import pickle
 
 from tree import CheckboxTree
 from components import ModificationList, EditableOptionMenu, Board
-from project import Project
+from project import Project, DupllicatedCopyNameException
 from functions import format_log_message
 
 
@@ -111,14 +111,27 @@ class App(object):
         self.tree.fill(self.app_project.project.project_items)
         self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
     
-    def new_copy(self,event=None):
+    def new_copy(self,event=None,name=None,path=None):
         new_copy_window = tk.Toplevel(self.root)
         new_copy_widget = NewCopy(new_copy_window,self.callback_new_copy)
+        #TODO: works fine, but this is not the correct place to do it!
+        if name:
+            new_copy_widget.name_entry.delete(0,tk.END)
+            new_copy_widget.name_entry.insert(0,name)
+        if path:
+            new_copy_widget.path_entry.delete(0,tk.END)
+            new_copy_widget.path_entry.insert(0,path)
         new_copy_widget.pack()
         new_copy_window.transient(self.root)
 
     def callback_new_copy(self,path,name):
-        self.app_project.project.add_new_copy(path=path,name=name)
+        try:
+            self.app_project.project.add_new_copy(path=path,name=name)
+        except DupllicatedCopyNameException:
+            tkMessageBox.showerror('Error','Already exists a copy named "%s". Please choose a different name to continue.' % name)
+            self.new_copy(name=name,path=path)
+            return
+
         self.copy_manager_menu.insert_option(0,name)
         self.copy_manager_var.set(name)
         self.app_project.locked_copy = True
