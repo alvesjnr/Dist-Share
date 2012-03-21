@@ -328,7 +328,7 @@ class AppProject(object):
             self.locked_copy = False
         else:
             raise BaseException("You must provide either a Project or a dumped AppProject object")
-
+        self.avoided_files = {}
         self.update_avoided_files()
 
     def dumps(self):
@@ -339,7 +339,6 @@ class AppProject(object):
 
     def update_avoided_files(self):
         self.avoided_files = {}
-        import pdb; pdb.set_trace()
         for copy in self.project.copies_manager.copies:
             self.avoided_files[copy.copy_name] = copy.avoided_files
 

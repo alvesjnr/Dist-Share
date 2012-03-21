@@ -41,6 +41,7 @@ class CheckboxTree(object):
         self.cl.pack(fill=Tix.BOTH, side=tk.LEFT)
 
     def fill(self,items):
+        items = self._remove_space(items)
         self.make_list(normalize_items(items))
         self.all_items = self.cl.getselection()
         
@@ -69,6 +70,7 @@ class CheckboxTree(object):
             self.cl.open(a)
 
     def selectItem(self, item):
+        item = item.replace(' ',SPACE)
         status = self.cl.getstatus(item)
         #do the top-bottom propagation
         for i in self.all_items:
@@ -87,9 +89,12 @@ class CheckboxTree(object):
         self.cl.forget()
 
     def get_checked_items(self, mode='on'):
-        return [os.path.join(FOLDER_SEPARATOR,item) for item in self.cl.getselection(mode=mode)]
+        checked_items = [os.path.join(FOLDER_SEPARATOR,item) for item in self.cl.getselection(mode=mode)]
+        checked_items = self._add_space(checked_items)
+        return checked_items
     
     def set_unchecked_items(self, items):
+        items = self._remove_space(items)
         for item in items:
             if item.startswith(FOLDER_SEPARATOR):
                 item = item.replace(FOLDER_SEPARATOR,'',1)
@@ -101,6 +106,16 @@ class CheckboxTree(object):
     def set_all_items(self):
         for item in self.all_items:
             self.cl.setstatus(item, 'on')
+
+    @staticmethod
+    def _remove_space(l):
+        f = lambda x : x.replace(' ',SPACE)
+        return map(f,l)
+
+    @staticmethod
+    def _add_space(l):
+        f = lambda x : x.replace(SPACE,' ')
+        return map(f,l)
 
 
 if __name__ == '__main__':
