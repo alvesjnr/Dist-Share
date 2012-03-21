@@ -1,10 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+import pickle
+
 import Tix
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
-import pickle
 
 from tree import CheckboxTree
 from components import ModificationList, EditableOptionMenu, Board
@@ -93,6 +96,15 @@ class App(object):
         self.project_frame.pack()
         self.bottom_frame.pack()
         self.main_frame.pack()
+
+    def load_initial_project(self,filename):
+        with open(filename) as dumped_app_project:
+            self.app_project = AppProject(dumped_app_project=dumped_app_project.read())
+            self.app_project.project.update_project()
+            self.tree.fill(self.app_project.project.project_items)
+            self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
+            for copy in self.app_project.project.copies_manager.copies:
+                self.copy_manager_menu.insert_option(0,copy.copy_name)
 
     def event_exit(self,event=None):
         if self.check_for_saving:
@@ -594,13 +606,20 @@ class StatusBoard(tk.Frame):
         self.__Button1.pack(side='bottom')            
 
 
-def main():
+def main(project=None):
     WINDOW_TITLE = 'Dist Share'
     root = Tix.Tk()
     root.wm_title('Untitled Project - '+WINDOW_TITLE)
     app = App(root)
+    if project:
+        app.load_initial_project(project)
     root.mainloop()
 
 
 if __name__ == '__main__':
-    main()
+    project = None
+    if len(sys.argv) > 1 and os.path.exists(sys.argv[1]):
+        project = sys.argv[1]
+
+    main(project)
+    
