@@ -92,7 +92,12 @@ class CheckboxTree(object):
         for item in items:
             if item.startswith(FOLDER_SEPARATOR):
                 item = item.replace(FOLDER_SEPARATOR,'',1)
-            self.cl.setstatus(item, 'off')
+            try:
+                self.cl.setstatus(item, 'off')
+            except Tix.TclError as e:
+                #FIXME!
+                import sys
+                sys.stderr.write('Warning: %s\n' % str(e))
     
     def set_all_items(self):
         for item in self.all_items:

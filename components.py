@@ -47,6 +47,13 @@ class Board(object):
     def event_quit(self):
         self.root.destroy()
 
+    @classmethod
+    def show_message(cls,root,message):
+        window = tk.Toplevel(root)
+        widget = cls(window)
+        widget.fill_board(message)
+        window.transient(root)
+
 
 class SaveQuitBoard(Board):
     def __init__(self,root):

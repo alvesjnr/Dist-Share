@@ -115,4 +115,16 @@ def normalize_items(items):
 
     return list_head + list_tail
 
+
+def format_log_message(log):
+
+    message = ''
     
+    if log['A']: 
+        message += "Added files:\n%s\n\n" % '\n    '.join(log['A'])
+    if log['U']: 
+        message += "Updated Files:\n%s\n\n" % '\n    '.join(log['U'])
+    if log['D']: 
+        message += "Removed Files:\n%s\n\n" % '\n    '.join(log['D'])
+
+    return message

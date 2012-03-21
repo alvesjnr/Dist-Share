@@ -7,8 +7,9 @@ import tkFileDialog, tkMessageBox
 import pickle
 
 from tree import CheckboxTree
-from components import ModificationList, EditableOptionMenu
+from components import ModificationList, EditableOptionMenu, Board
 from project import Project
+from functions import format_log_message
 
 
 class App(object):
@@ -244,6 +245,9 @@ class App(object):
         if not self.force_create_copy():
             return
         self.app_project.project.update_copies()
+        update_message = format_log_message(self.app_project.project.update_log)
+        if update_message:
+            Board.show_message(self.root,update_message)
 
     def refresh_copy(self,event=None):
         avoided_files = self.app_project.avoided_files[self.copy_manager_var.get()]

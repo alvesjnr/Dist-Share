@@ -198,8 +198,8 @@ class Copy(object):
                 self.repo.git.commit(filepath,m='removing file %s' % filepath)
             except:
                 pass # expected error
-            if remove_from_avoided_files and origin_file_path in self.avoided_files:
-                self.avoided_files.remove(origin_file_path)
+        if remove_from_avoided_files and origin_file_path in self.avoided_files:
+            self.avoided_files.remove(origin_file_path)
 
     def get_copy_path(self,origin_path):
         """ get the origin file path and return its copy equivalent
@@ -331,7 +331,6 @@ def update_local_copy(path):
     deleted_files = []
     new_files = []
     if not errors:
-        import pdb; pdb.set_trace()
         output = output.split('\n')
         for item in output:
             if item.startswith('U'):
@@ -349,12 +348,7 @@ def update_local_copy(path):
 
     return updated_files,deleted_files,new_files
 
-"""
-    Just some definitions for the project class:
-        source_location: is the place where the project is stored. It can be an SVN 
-                         repository or a local folde in ypur computer
-        local_copy : Is the copy of the original project, but in your computer!
-"""
+
 class Project(object):
 
     def __init__(self,url=None,path=None,dumped_project=None):
@@ -418,6 +412,7 @@ class Project(object):
         deleted_files.sort(key=lambda x : x.count(FOLDER_SEPARATOR))
         deleted_files.reverse()
         self.copies_manager.remove_files_from_copy(deleted_files)
+        self.update_log = {'A':new_files,'D':deleted_files,'U':updated_files}
 
     def avoid_files(self,files):
         self.copies_manager.avoid_files(files)
@@ -440,4 +435,3 @@ class Project(object):
 
     def set_current_copy(self,copy_path='',copy_name=''):
         self.copies_manager.set_current_copy(copy_path,copy_name)
-
