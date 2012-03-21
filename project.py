@@ -225,7 +225,11 @@ class Copy(object):
         else:
             if not os.path.exists(path):
                 os.makedirs(path)
-            shutil.copy2(filename,copy_name)
+            try:
+                shutil.copy2(filename,copy_name)
+            except IOError as e:
+                sys.stderr.write('Warning: File %s could not be copied. Broke link?\n' % filename)
+
             if self.license:
                 add_license(copy_name,self.license)
 
