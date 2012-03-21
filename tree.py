@@ -17,9 +17,18 @@ class CheckboxTree(object):
         self.height = height
         self.width = width
         self.parent = parent
-        self.reset_tree()
+        self.cl = Tix.CheckList(self.root, 
+                                browsecmd=self.selectItem,
+                                command=self.selectItem,
+                                width=self.width, 
+                                height=self.height,)
+        self.cl.hlist.configure(indicatorcmd=self.colapse,
+                                selectforeground='black',
+                                separator=FOLDER_SEPARATOR)
+        self.cl.pack(fill=Tix.BOTH, side=tk.LEFT)
 
     def reset_tree(self):
+        self.cl.destroy()
         self.cl = Tix.CheckList(self.root, 
                                 browsecmd=self.selectItem,
                                 command=self.selectItem,

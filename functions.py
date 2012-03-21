@@ -18,6 +18,7 @@ comments = {'.py':{'begin':'"""', 'end':'"""'},
 extensions = [key for key in comments]
 DO_NOT_ADD_LICENSE_MARKER = 'DO NOT ADD LICENSE'
 FOLDER_SEPARATOR = os.sep
+SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
 SPACE = '%20'
 
 
@@ -40,7 +41,7 @@ def get_files(root,files=None):
     files += files_here
 
     for f in files_here:
-        if os.path.isdir(f):
+        if os.path.isdir(f) and not SVN_MARKER in f:
             files = get_files(f,files)
 
     return files

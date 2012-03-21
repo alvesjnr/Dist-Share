@@ -26,6 +26,7 @@ class Copy(object):
         self.avoided_files = []
         self.license = license
         self.files_to_delete = []
+        self.removed_files = []
         self.initialized = False
 
     def unavoid_file(self, full_filename):
@@ -94,6 +95,8 @@ class Copy(object):
 
     def create_directories_struct(self):
         for item in self.items:
+            if SVN_MARKER in item:
+                continue
             if os.path.isdir(item) and item not in self.avoided_files:
                 if item in self.change_profile:
                     item = self.get_new_filename(item)
@@ -326,7 +329,9 @@ def update_local_copy(path):
     output,errors = process.communicate()
     updated_files = []
     deleted_files = []
+    new_files = []
     if not errors:
+        import pdb; pdb.set_trace()
         output = output.split('\n')
         for item in output:
             if item.startswith('U'):
@@ -336,10 +341,13 @@ def update_local_copy(path):
             elif item.startswith('D'):
                 item = ' '.join(item.split()[1:])
                 deleted_files.append(item)
+            elif item.startswith('A '):
+                item = ' '.join(item.split()[1:])
+                new_files.append(item)
     else:
         raise Exception('Unknow error when updating local copy: %s' % errors)
 
-    return updated_files,deleted_files
+    return updated_files,deleted_files,new_files
 
 """
     Just some definitions for the project class:
@@ -400,10 +408,13 @@ class Project(object):
         self.updated_files = set()
 
     def update_project(self):
-        updated_files,deleted_files = update_local_copy(self.path)
+        updated_files,deleted_files,new_files = update_local_copy(self.path)
         self.project_items = get_files(self.path)
         for item in updated_files:
             self.updated_files.add(item)
+        for copy in self.copies_manager.copies:
+            for item in new_files:
+                copy.avoid_file(item)
         deleted_files.sort(key=lambda x : x.count(FOLDER_SEPARATOR))
         deleted_files.reverse()
         self.copies_manager.remove_files_from_copy(deleted_files)

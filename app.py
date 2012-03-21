@@ -238,6 +238,9 @@ class App(object):
 
     def update_project(self,event=None):
         self.app_project.project.update_project()
+        self.tree.reset_tree()
+        self.tree.fill(self.app_project.project.project_items)
+        self.tree.set_unchecked_items(self.app_project.project.copies_manager.current_copy.avoided_files)
         if not self.force_create_copy():
             return
         self.app_project.project.update_copies()
