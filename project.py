@@ -16,10 +16,7 @@ class Copy(object):
 
     def __init__(self,source_path, name='', license=None):
 
-        if name:
-            self.copy_name = name
-        else:
-            self.copy_name = source_path
+        self.copy_name = name
         self.items = get_files(source_path)
         self.source_path = source_path
         self.change_profile = {}
@@ -66,6 +63,8 @@ class Copy(object):
 
     def set_copy_location(self,path):
         self.copy_location = path
+        if not self.copy_name:
+            self.copy_name = path
 
     def create_new_copy(self):
         self.create_directories_struct()
@@ -94,6 +93,8 @@ class Copy(object):
         self.initialized = True
 
     def create_directories_struct(self):
+        if not os.path.exists(self.copy_location):
+            os.makedirs(self.copy_location)
         for item in self.items:
             if SVN_MARKER in item:
                 continue
@@ -391,7 +392,10 @@ class Project(object):
 
     def add_new_copy(self,path,name=''):
         self.copies_manager.create_copy(path,name=name)
-        self.copies_manager.set_current_copy(path)
+        if name:
+            self.copies_manager.set_current_copy(copy_name=name)
+        else:
+            self.copies_manager.set_current_copy(copy_path=path)
 
     def create_current_copy(self):
         if not self.copies_manager.current_copy.initialized:
