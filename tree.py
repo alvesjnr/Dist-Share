@@ -3,6 +3,7 @@
 import Tkinter as tk
 import Tix
 import os
+import sys
 
 from functions import *
 
@@ -95,8 +96,6 @@ class CheckboxTree(object):
             try:
                 self.cl.setstatus(item, 'off')
             except Tix.TclError as e:
-                #FIXME!
-                import sys
                 sys.stderr.write('Warning: %s\n' % str(e))
     
     def set_all_items(self):
