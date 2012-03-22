@@ -154,7 +154,7 @@ class ModificationList(object):
                         sys.stderr.write('Warning: listbox entr %s not found\n' % old_name)
                         return
                 self.listbox.delete(index)
-                self._add_item(original_name,new_name)
+        self._add_item(original_name,new_name)
 
     def _add_item(self,original_name,new_name):
         self.listbox.insert(0,"%s -> %s" % (original_name,new_name))
