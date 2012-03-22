@@ -4,7 +4,6 @@ import Tix
 import ttk
 from functions import *
 import tkFileDialog, tkMessageBox
-
 from tree import CheckboxTree
 
 import os
@@ -106,9 +105,13 @@ class ModificationList(object):
         self.frame.pack(side=tk.LEFT,fill=tk.BOTH)
 
     def edit_entry(self, event=None):
-        modification_entry = self.listbox.selection_get()
-        original_name, new_name = self._split_text(modification_entry)
+        try:
+            modification_entry = self.listbox.selection_get()
+        except tk.TclError:
+            # none selected item
+            return
         
+        original_name, new_name = self._split_text(modification_entry)
         modify_window = tk.Toplevel(self.root)
         modify_widget = EditModification(modify_window,modification_entry,self.edit_entry_callback)
 
@@ -124,7 +127,7 @@ class ModificationList(object):
             to insert a new entry
         """
         add_entry_window = tk.Toplevel(self.root)
-        add_entry_widget = AddModification(path=self.parent.app_project.project.path,callback=self._add_item,root=add_entry_window)
+        add_entry_widget = AddModification(path=self.parent.app_project.project.path,callback=self.add_item,root=add_entry_window)
         add_entry_window.transient(self.root)
 
     def remove_entry(self):
@@ -137,10 +140,23 @@ class ModificationList(object):
         for item in items:
             self._add_item(item,items[item])
 
+    def add_item(self,original_name,new_name):
+        change_profile = self.parent.app_project.project.copies_manager.current_copy.change_profile
+        if original_name in change_profile:
+            if tkMessageBox.askyesno('Duplicated file','Already exists one change for this file. Do you want to overwrite the last change?'):
+                old_name = "%s -> %s" % (original_name,change_profile[original_name])
+                index = 0
+                while self.listbox.get(index) != old_name:
+                    index += 1
+                    if not self.listbox.get(index):
+                        sys.stderr.write('Warning: listbox entr %s not found\n' % old_name)
+                        return
+                self.listbox.delete(index)
+                self._add_item(original_name,new_name)
+
     def _add_item(self,original_name,new_name):
         self.listbox.insert(0,"%s -> %s" % (original_name,new_name))
         self.parent.rename_file_callback()
-
 
     def get_modification_list(self):
 
