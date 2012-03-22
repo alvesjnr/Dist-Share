@@ -82,7 +82,7 @@ class App(object):
         self.project_frame_list.pack(side=tk.LEFT)
 
         #License Board
-        self.license_board = LicenseBoard(self.license_frame,text_changed_callback=self.license_text_changed,change_callback=self.update_license,update_license_event=self.update_license_event)
+        self.license_board = LicenseBoard(self.license_frame,change_callback=self.license_text_changed,update_license_event=self.update_license_event)
         self.license_board.pack(anchor='w')
         self.license_frame.pack(anchor='w',side=tk.LEFT)
 
@@ -251,7 +251,12 @@ class App(object):
     def change_to_copy(self,name=''):
         """ This method binds the event of changing copy by the dropdown menu
         """ 
+        
         if not self.force_create_copy():
+            return
+        
+        if not self.force_save():
+            self.copy_manager_var.set(self.app_project.project.copies_manager.current_copy.copy_name)
             return
 
         self.listbox.reset_list()
@@ -274,10 +279,12 @@ class App(object):
 
             self.license_board.fill(self.app_project.project.copies_manager.current_copy.license)
 
-    def update_license(self,event=None):
-        if self.force_save():
-            if self.app_project.name != '-':
-                self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
+    def update_license_event(self):
+        """ Forces rewriting license in all files of the copy
+        """
+        if self.app_project.name != '-' and self.force_save():
+            self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
+            self.save_project()
 
     def license_text_changed(self,event=None):
         if self.app_project.name != '-':
@@ -314,12 +321,6 @@ class App(object):
                 return False
         else:
             return True
-
-    def update_license_event(self):
-        """ Forces rewriting license in all files of the copy
-        """
-        if self.force_save():
-            self.app_project.project.copies_manager.current_copy.update_license()
 
     def check_for_saving(self):
         if self.app_project is None:
@@ -532,7 +533,7 @@ class NewCopy(tk.Frame):
 
 class LicenseBoard(tk.Frame):
 
-    def __init__(self,Master=None, change_callback=None,update_license_event=None,text_changed_callback=None,**kw):
+    def __init__(self,Master=None, change_callback=None, update_license_event=None,**kw):
 
         apply(tk.Frame.__init__,(self,Master),kw)
         self.change_callback = change_callback
@@ -547,7 +548,7 @@ class LicenseBoard(tk.Frame):
         self.license_scroll.config(command=self.__Text1.yview)
         self.license_scroll.pack(side=tk.RIGHT,
                                   fill=tk.Y)
-        self.__Text1.bind('<KeyRelease>',text_changed_callback)
+        self.__Text1.bind('<KeyRelease>',self.change_callback)
         self.__Text1.pack(side='top',anchor='w')
         self.__Frame3 = tk.Frame(self)
         self.__Frame3.pack(side='top',anchor='w')

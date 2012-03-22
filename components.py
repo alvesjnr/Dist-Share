@@ -308,6 +308,9 @@ class EditableOptionMenu(tk.OptionMenu):
         """Delete options the same way as Tkinter.Menu.delete()"""
         self.menu.delete(index1, index2)
 
+    def set_current_option(self,option):
+        pass
+
 if __name__ == '__main__':
     def print_it(event):
         print strvar.get()
