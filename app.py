@@ -155,8 +155,12 @@ class App(object):
 
     def load_project(self, event=None):
 
-        if self.app_project and not self.check_for_saving():
-            return
+        if self.app_project:
+            if not self.check_for_saving():
+                return
+            else:
+                self.tree.reset_tree()
+                self.app_project = None 
 
         filename = tkFileDialog.askopenfile(defaultextension=".dist", parent=self.root)
         if filename:
