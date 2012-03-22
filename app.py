@@ -82,7 +82,7 @@ class App(object):
         self.project_frame_list.pack(side=tk.LEFT)
 
         #License Board
-        self.license_board = LicenseBoard(self.license_frame,change_callback=self.update_license,update_license_event=self.update_license_event)
+        self.license_board = LicenseBoard(self.license_frame,text_changed_callback=self.license_text_changed,change_callback=self.update_license,update_license_event=self.update_license_event)
         self.license_board.pack(anchor='w')
         self.license_frame.pack(anchor='w',side=tk.LEFT)
 
@@ -278,6 +278,11 @@ class App(object):
         if self.force_save():
             if self.app_project.name != '-':
                 self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
+
+    def license_text_changed(self,event=None):
+        if self.app_project.name != '-':
+            self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
+            self.app_project.saved = False
 
     def update_project(self,event=None):
         if not self.force_save():
@@ -527,7 +532,7 @@ class NewCopy(tk.Frame):
 
 class LicenseBoard(tk.Frame):
 
-    def __init__(self,Master=None, change_callback=None,update_license_event=None,**kw):
+    def __init__(self,Master=None, change_callback=None,update_license_event=None,text_changed_callback=None,**kw):
 
         apply(tk.Frame.__init__,(self,Master),kw)
         self.change_callback = change_callback
@@ -542,7 +547,7 @@ class LicenseBoard(tk.Frame):
         self.license_scroll.config(command=self.__Text1.yview)
         self.license_scroll.pack(side=tk.RIGHT,
                                   fill=tk.Y)
-        self.__Text1.bind('<KeyRelease>',self.change_callback)
+        self.__Text1.bind('<KeyRelease>',text_changed_callback)
         self.__Text1.pack(side='top',anchor='w')
         self.__Frame3 = tk.Frame(self)
         self.__Frame3.pack(side='top',anchor='w')
