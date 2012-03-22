@@ -242,7 +242,7 @@ class App(object):
 
         to_add,to_remove = get_modifications(current_change_profile,renamed_files)
         for i in to_remove:
-            self.app_project.project.copies_manager.current_copy.remove_change(i,to_remove[i])
+            self.app_project.project.copies_manager.current_copy.remove_change(i)
         for i in to_add:
             self.app_project.project.copies_manager.current_copy.add_change(i,to_add[i])
         self.app_project.saved = False
