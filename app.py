@@ -212,7 +212,6 @@ class App(object):
         files_to_avoid = [item for item in unselected_items if item not in current_avoided]
         files_to_unavoid = [item for item in current_avoided if item not in unselected_items]
 
-        #FIXME: refresh is not working!
         for item in files_to_avoid:
             self.app_project.project.copies_manager.current_copy.avoid_file(item)
         for item in files_to_unavoid:
@@ -306,10 +305,28 @@ class App(object):
             Board.show_message(self.root,update_message)
 
     def refresh_copy(self,event=None):
-        avoided_files = self.app_project.avoided_files[self.copy_manager_var.get()]
-        self.app_project.project.copies_manager.current_copy.avoided_files = avoided_files
+        self.app_project.saved = True
+        current_copy = self.app_project.project.copies_manager.current_copy
+        copy_name = current_copy.copy_name
+
+        if copy_name != self.copy_manager_var.get():
+            raise Exception("Panic!")
+            self.root.quit()
+
+        avoided_files = self.app_project.avoided_files[copy_name]
+        current_copy.avoided_files = avoided_files[:]
         self.tree.set_all_items()
         self.tree.set_unchecked_items(avoided_files)
+
+        license = self.app_project.license[copy_name]
+        self.license_board.erase()
+        self.license_board.fill(license)
+        current_copy.license = license
+
+        change_profile = self.app_project.renamed_files[copy_name]
+        current_copy.change_profile = change_profile.copy()
+        self.listbox.reset_list()
+        self.listbox.fill(change_profile)
 
     def force_create_copy(self):
         if self.app_project.locked_copy:
@@ -365,7 +382,6 @@ class AppProject(object):
             self.locked_copy = False
         else:
             raise BaseException("You must provide either a Project or a dumped AppProject object")
-        self.avoided_files = {}
         self.update_avoided_files()
 
     def dumps(self):
@@ -376,8 +392,12 @@ class AppProject(object):
 
     def update_avoided_files(self):
         self.avoided_files = {}
+        self.license = {}
+        self.renamed_files = {}
         for copy in self.project.copies_manager.copies:
-            self.avoided_files[copy.copy_name] = copy.avoided_files
+            self.avoided_files[copy.copy_name] = copy.avoided_files[:]
+            self.renamed_files[copy.copy_name] = copy.change_profile.copy()
+            self.license[copy.copy_name] = copy.license
 
 
 class NewProject(tk.Frame):
