@@ -11,7 +11,9 @@ FOLDER_SEPARATOR = os.sep
 SPACE = '%20'
 SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
 
+
 class CheckboxTree(object):
+
     def __init__(self, root, parent, height=500, width=600):
         self.odd = True
         self.root = root
