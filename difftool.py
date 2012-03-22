@@ -6,6 +6,7 @@ import tkFileDialog
 
 import os
 
+
 def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=None, fl_root=None):
     if output is None: output = []
 
@@ -44,6 +45,7 @@ def get_files_tree(root, level=0, stack_on_level={}, show_hidden=False, output=N
     
     if level==0:
         return output
+
 
 def get_removed_lines(original,copy):
     for number,line in enumerate(original):
@@ -135,6 +137,6 @@ if __name__=='__main__':
     
     root = tk.Tk()
     app = DiffBoard(root)
-    app.set_diff_board('/home/antonio/Projects/dist_project', '/tmp/catapulta/dist_project')
+    app.set_diff_board('/tmp/test_place', '/tmp/copy')
     root.mainloop()
 

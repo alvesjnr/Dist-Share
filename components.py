@@ -4,7 +4,9 @@ import Tix
 import ttk
 from functions import *
 import tkFileDialog, tkMessageBox
+from project import Project, NewProjectException
 from tree import CheckboxTree
+import pysvn
 
 import os
 
@@ -365,10 +367,11 @@ class NewProject(tk.Frame):
         self.warning_frame.pack(side='top')
         self.warning_text = tk.Text(self.warning_frame)
         self.warning_text.pack(side='top')
+        self.callback_get_login = None
 
-        #REMOVE remove it after tests
-        self.url_entry.insert(0,'svn://alvesjnr@localhost/tmp/svnrepo')
-        self.pth_entry.insert(0,'/tmp/nuca')
+        # #REMOVE remove it after tests
+        # self.url_entry.insert(0,'')
+        # self.pth_entry.insert(0,'/home/antonio/copies_of_project/original')
 
     def event_cancel(self,Event=None):
         self.root.destroy()
@@ -386,15 +389,25 @@ class NewProject(tk.Frame):
             self.pth_entry.delete(0)
             self.pth_entry.insert(0,repository_path)
 
+    def create_callback_get_login(self,param):
+        def f(*x,**y):
+            return True, param[0], param[1], True
+
+        self.callback_get_login = f
+
     def event_okay(self,Event=None):
         project_path = self.pth_entry.get()
         project_url = self.url_entry.get()
 
         if self._svn_url_okay(project_url) and self._project_path_okay(project_path):
             try:
-                project = Project(path=project_path,url=project_url)
-            except:
+                project = Project(path=project_path,url=project_url,callback_get_login=self.callback_get_login)
+                self.callback_get_login = None
+            except NewProjectException:
+                sys.stderr.write(e)
                 tkMessageBox.showerror('Error','It was not possible to create a new project. \nPlease check svn URL and folder path.')
+            except pysvn.ClientError:
+                AskPassword.ask_password_window(self.root,self.create_callback_get_login)
             else:
                 self.callback(project)
                 self.root.destroy()
@@ -566,6 +579,55 @@ class StatusBoard(tk.Frame):
         self.__Frame3.pack(side='top')
         self.__Button1 = tk.Button(self.__Frame3,text='Update Project',command=update_callback)
         self.__Button1.pack(side='bottom')            
+
+
+class AskPassword(tk.Frame):
+
+    def __init__(self,Master=None,callback=None,**kw):
+
+        apply(tk.Frame.__init__,(self,Master),kw)
+        self.root = Master
+        self.callback = callback
+        self.__Frame3 = tk.Frame(self)
+        self.__Frame3.pack(side='top')
+        self.__Label1 = tk.Label(self.__Frame3,text='Username:')
+        self.__Label1.pack(side='left')
+        self.username_entry = tk.Entry(self.__Frame3)
+        self.username_entry.pack(side='left')
+        self.__Frame2 = tk.Frame(self)
+        self.__Frame2.pack(side='top')
+        self.__Label2 = tk.Label(self.__Frame2,text='Password:')
+        self.__Label2.pack(side='left')
+        self.password_entry = tk.Entry(self.__Frame2,show='*')
+        self.password_entry.pack(side='left')
+        self.__Frame1 = tk.Frame(self)
+        self.__Frame1.pack(side='top')
+        self.okay_button = tk.Button(self.__Frame1,text='Okay')
+        self.okay_button.pack(side='left')
+        self.okay_button.bind('<ButtonRelease-1>',self.event_okay)
+        self.cancel_button = tk.Button(self.__Frame1,text='Cancel')
+        self.cancel_button.pack(side='left')
+        self.cancel_button.bind('<ButtonRelease-1>',self.event_cancel)
+
+    def event_cancel(self,Event=None):
+        self.callback(None)
+        self.root.destroy()
+
+    def event_okay(self,Event=None):
+        response = (self.username_entry.get(),self.password_entry.get())
+        
+        if not all(response):
+            return
+
+        self.callback(response)
+        self.root.destroy()
+
+    @classmethod
+    def ask_password_window(cls,root,callback):
+        window = tk.Toplevel(root)
+        widget = cls(window,callback)
+        widget.pack()
+        window.transient(root)
 
 
 if __name__ == '__main__':

@@ -338,7 +338,7 @@ def update_local_copy(path):
     if not errors:
         output = output.split('\n')
         for item in output:
-            if item.startswith('U'):
+            if item.startswith('U '):
                 candidate = ' '.join(item.split()[1:])
                 if os.path.exists(candidate):
                     updated_files.append(candidate)
@@ -358,15 +358,20 @@ class DupllicatedCopyNameException(BaseException):
     This copy name already exists
     """
 
+class NewProjectException(BaseException):
+    """
+    For some reason it would not possible to create a new project
+    """
+
 class Project(object):
 
-    def __init__(self,url=None,path=None,dumped_project=None):
+    def __init__(self,url=None,path=None,dumped_project=None,callback_get_login=None):
 
         self.path = path
         self.url = url
 
         if  path and url:
-            self.init_new_copy(url,path)
+            self.init_new_copy(url,path,callback_get_login)
             self.copies_manager = CopiesManager(self.path)
             self.updated_files = set()
             self.project_items = get_files(self.path)
@@ -384,7 +389,7 @@ class Project(object):
         else:
             raise Exception("It wouldn't possible to create a new project")
 
-    def init_new_copy(self,url,path):
+    def init_new_copy(self,url,path,callback_get_login=None):
         if os.path.exists(path):
             if not os.path.isdir(path):
                  raise Exception("It wouldn't possible to create local repository at %" % path)
@@ -396,6 +401,8 @@ class Project(object):
 
         # At this point, local_copy folder were created and is ready to checkout
         self.client = pysvn.Client()
+        if callback_get_login:
+            self.client.callback_get_login = callback_get_login
         self.client.checkout(url=url,path=path)
 
     def add_new_copy(self,path,name=''):
