@@ -150,7 +150,7 @@ class App(object):
         self.app_project.project.set_current_copy(copy_name=name)
         self.tree.set_all_items()
         self.app_project.name = self.app_project.project.copies_manager.current_copy.copy_name
-        self.license_board.fill('')
+        self.license_board.erase()
         self.app_project.update_avoided_files()
 
     def load_project(self, event=None):
@@ -265,7 +265,7 @@ class App(object):
         if name == '-':
             self.tree.set_all_items()
             self.app_project.name = '-'
-            self.license_board.fill('')
+            self.license_board.erase()
         else:
             self.app_project.project.set_current_copy(copy_name=name)
             self.tree.set_all_items()
@@ -288,7 +288,7 @@ class App(object):
 
     def license_text_changed(self,event=None):
         if self.app_project.name != '-':
-            self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
+            self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license().strip()
             self.app_project.saved = False
 
     def update_project(self,event=None):
@@ -577,10 +577,12 @@ class LicenseBoard(tk.Frame):
             self.__Text1.delete(1.0,tk.END)
             self.__Text1.insert(tk.END,text)
             self.label_var.set('')
-            self.change_callback()
 
     def get_license(self):
         return self.__Text1.get(1.0,tk.END)
+
+    def erase(self):
+            self.__Text1.delete(1.0,tk.END)
 
 
 class StatusBoard(tk.Frame):
