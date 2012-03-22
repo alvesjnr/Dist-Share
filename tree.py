@@ -51,7 +51,9 @@ class CheckboxTree(object):
         
         for i in items:
             if not SVN_MARKER in i:
-                self.cl.hlist.add(i,text=i)
+                text = i.split(FOLDER_SEPARATOR)[-1]
+                text = text.replace(SPACE,' ')
+                self.cl.hlist.add(i,text=text)
                 self.cl.setstatus(i, 'on')
         
         self.cl.autosetmode()
