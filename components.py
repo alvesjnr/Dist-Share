@@ -429,6 +429,10 @@ class NewProject(tk.Frame):
 class NewCopy(tk.Frame):
 
     def __init__(self,Master=None, callback=None, **kw):
+
+        self.git_username = kw.pop('git_username')
+        self.git_useremail = kw.pop('git_useremail')
+
         apply(tk.Frame.__init__,(self,Master),kw)
         self.callback = callback
         self.root = Master
@@ -448,13 +452,58 @@ class NewCopy(tk.Frame):
         self.load_path_button.pack(side='left')
         self.load_path_button.bind('<ButtonRelease-1>',self.event_load_path)
         self.__Frame4 = tk.Frame(self)
-        self.__Frame4.pack(side='top')
         self.okay = tk.Button(self.__Frame4,text='Create Copy')
         self.okay.pack(side='left')
         self.okay.bind('<ButtonRelease-1>',self.event_okay)
         self.cancel = tk.Button(self.__Frame4,text='Cancel')
         self.cancel.pack(side='left')
         self.cancel.bind('<ButtonRelease-1>',self.event_cancel)
+
+        self.frame_git = tk.Frame(self)
+        self.frame_git.pack(side='top')
+
+        self.user_email_config_var = tk.StringVar()
+        self.user_email_config_var.set('default')
+        self.__Frame5 = tk.Frame(self.frame_git)
+        self.__Frame5.pack(side='left')
+        self.__Label3 = tk.Label(self.__Frame5,text='Current User:')
+        self.__Label3.pack(side='top',anchor='e')
+        self.__Label4 = tk.Label(self.__Frame5,text='Current E-mail:')
+        self.__Label4.pack(side='top',anchor='e')
+        self.__Label5 = tk.Label(self.__Frame5,text='Username:')
+        self.__Label5.pack(side='top',anchor='e')
+        self.__Label6 = tk.Label(self.__Frame5,text='E-mail:')
+        self.__Label6.pack(side='top',anchor='e')
+        self.__Frame10 = tk.Frame(self.frame_git)
+        self.__Frame10.pack(side='left')
+        self.__Label8 = tk.Label(self.__Frame10,text=self.git_username,anchor='w')
+        self.__Label8.pack(side='top',anchor='w')
+        self.__Label7 = tk.Label(self.__Frame10,text=self.git_useremail)
+        self.__Label7.pack(side='top')
+        self.entry_username = tk.Entry(self.__Frame10)
+        self.entry_username.insert(0,self.git_username)
+        self.entry_username.pack(side='top',anchor='w')
+        self.entry_email = tk.Entry(self.__Frame10)
+        self.entry_email.insert(0,self.git_useremail)
+        self.entry_email.pack(side='top',anchor='w')
+        self.__Frame7 = tk.Frame(self.frame_git)
+        self.__Frame7.pack(side='left')
+        self.__Radiobutton1 = tk.Radiobutton(self.__Frame7,variable=self.user_email_config_var,value='default')
+        self.__Radiobutton1.pack(side='top')
+        self.__Radiobutton2 = tk.Radiobutton(self.__Frame7,variable=self.user_email_config_var,value='custom')
+        self.__Radiobutton2.pack(side='bottom')
+        self.__Frame6 = tk.Frame(self.frame_git)
+        self.__Frame6.pack(side='left')
+        self.__Frame9 = tk.Frame(self.__Frame6)
+        self.__Frame9.pack(side='top',anchor='w')
+        self.__Label10 = tk.Label(self.__Frame9,anchor='w',text='Use system configuration')
+        self.__Label10.pack(side='top',anchor='w')
+        self.__Frame8 = tk.Frame(self.__Frame6)
+        self.__Frame8.pack(side='top',anchor='w')
+        self.__Label9 = tk.Label(self.__Frame8,anchor='w',text='Use customized configuration')
+        self.__Label9.pack(side='top',anchor='w')
+
+        self.__Frame4.pack(side='top')
         self.__Frame1 = tk.Frame(self)
         self.__Frame1.pack(side='top')
         self.warning_text = tk.Text(self.__Frame1)
@@ -465,7 +514,7 @@ class NewCopy(tk.Frame):
         self.path_entry.insert(0,'/tmp/copy')
 
     def event_cancel(self,Event=None):
-        pass
+        self.root.destroy()
 
     def event_load_path(self,Event=None):
         pass
@@ -478,7 +527,18 @@ class NewCopy(tk.Frame):
         elif not self._check_copy_name(name):
             tkMessageBox.showwarning('','Invalid copy name')
         else:
-            self.callback(path,name)
+            if self.user_email_config_var.get() == 'custom':
+                git_useremail = self.entry_email.get()
+                git_username = self.entry_username.get()
+
+                if not (git_useremail and git_username):
+                    tkMessageBox.showerror('Error','You must provide both username and E-mail')
+                    return
+            else:
+                git_useremail = None
+                git_username = None
+
+            self.callback(path,name,git_useremail=git_useremail,git_username=git_username)
             self.root.destroy()
     
     def _check_copy_name(self,name):
