@@ -25,6 +25,8 @@ class Copy(object):
         self.files_to_delete = []
         self.removed_files = []
         self.initialized = False
+        self.git_username = None
+        self.git_useremail = None
 
     def unavoid_file(self, full_filename):
         files_to_unavoid = []
@@ -89,11 +91,22 @@ class Copy(object):
                     add_license(copy_target,self.license)
 
         self.repo = git.Repo.init(self.copy_location)
+        
+        if self.git_useremail and self.git_username:
+            self.git_config_user()
+        
         self.repo.git.add(self.copy_location)
         self.repo.git.commit(m='First commit of the project %s' % self.copy_name)
 
         self.repo.git.branch('update_branch')   # create an update branch to use when updating repository
         self.initialized = True
+
+    def git_config_user(self):
+        gc = git.config.GitConfigParser(os.path.join(self.copy_location,'.git/config'),read_only=False)
+        if not gc.has_section('user'):
+            gc.add_section('user')
+        gc.set('user','name',self.git_username)
+        gc.set('user','email',self.git_useremail)
 
     def create_directories_struct(self):
         if not os.path.exists(self.copy_location):
@@ -402,6 +415,7 @@ class Project(object):
             self.path = project.path
             self.url = project.url
             self.project_items = project.project_items
+
         else:
             raise Exception("It wouldn't possible to create a new project")
 
@@ -473,3 +487,7 @@ class Project(object):
 
     def set_current_copy(self,copy_path='',copy_name=''):
         self.copies_manager.set_current_copy(copy_path,copy_name)
+
+    def config_git_user_email(self,username,email):
+        self.copies_manager.current_copy.git_username = username
+        self.copies_manager.current_copy.git_useremail = email
