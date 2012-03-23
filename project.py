@@ -47,6 +47,8 @@ class Copy(object):
         if full_filename in self.change_profile:
             old_name = self.change_profile[full_filename]
             self.schedule_file_to_delete(full_filename,old_name)
+        else:
+            self.schedule_file_to_delete(full_filename)
         self.change_profile.update(change_profile)
 
     def remove_change(self, full_filename):
@@ -55,10 +57,11 @@ class Copy(object):
             self.schedule_file_to_delete(full_filename,old_name)
             self.change_profile.pop(full_filename)
 
-    def schedule_file_to_delete(self,full_filename,old_name):
-        copy_path = self.get_copy_path(full_filename)
-        location,_ = split_path(copy_path)
-        file_to_delete = os.path.join(location,old_name)
+    def schedule_file_to_delete(self,full_filename,old_name=None):
+        file_to_delete = self.get_copy_path(full_filename)
+        if old_name:
+            location,_ = split_path(file_to_delete)
+            file_to_delete = os.path.join(location,old_name)
         self.files_to_delete.append(file_to_delete)
 
     def set_copy_location(self,path):
@@ -143,7 +146,7 @@ class Copy(object):
 
         for item in self.items:
             if SVN_MARKER in item:
-                continue 
+                continue
             if not os.path.exists(self.get_copy_path(item)) and item not in self.avoided_files:
                 self.copy_new_file(item)
 
@@ -153,24 +156,24 @@ class Copy(object):
         for item in self.files_to_delete:
             self.remove_renamed_file(item)
         self.files_to_delete = []
-        
+
         self.removed_files.sort(key=lambda x: x.count(FOLDER_SEPARATOR))
-        self.removed_files.reverse()     
-        
+        self.removed_files.reverse()
+
         for item in self.removed_files:
             try:
                 self.repo.git.rm(item)
                 self.repo.git.commit(m='updating project %s' % self.copy_name)
             except:
                 pass # expected error
-        
+
         self.repo.git.add(self.copy_location)
         try:
             self.repo.git.commit(m='updating project %s' % self.copy_name)
         except git.GitCommandError:
             #expected: none to commit
             pass
-        
+
         self.repo.git.checkout('master')
         self.repo.git.merge('update_branch')
         self.repo.git.add(self.copy_location)
