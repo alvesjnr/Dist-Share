@@ -9,6 +9,8 @@ import Tix
 import Tkinter as tk
 import tkFileDialog, tkMessageBox
 
+import git
+
 from tree import CheckboxTree
 from components import *
 from project import Project, DupllicatedCopyNameException
@@ -124,8 +126,11 @@ class App(object):
         self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
     
     def new_copy(self,event=None,name=None,path=None):
+        gc = git.config.GitConfigParser(os.path.expanduser('~/.gitconfig'))
+        git_username = gc.get('user','name')
+        git_useremail = gc.get('user','email')
         new_copy_window = tk.Toplevel(self.root)
-        new_copy_widget = NewCopy(new_copy_window,self.callback_new_copy)
+        new_copy_widget = NewCopy(new_copy_window,self.callback_new_copy,git_username=git_username,git_useremail=git_useremail)
         #TODO: works fine, but this is not the correct place to do it!
         if name:
             new_copy_widget.name_entry.delete(0,tk.END)
@@ -136,13 +141,18 @@ class App(object):
         new_copy_widget.pack()
         new_copy_window.transient(self.root)
 
-    def callback_new_copy(self,path,name):
+    def callback_new_copy(self,path,name,**kw):
+        git_username,git_useremail = kw['git_username'],kw['git_useremail']
+
         try:
             self.app_project.project.add_new_copy(path=path,name=name)
         except DupllicatedCopyNameException:
             tkMessageBox.showerror('Error','Already exists a copy named "%s". Please choose a different name to continue.' % name)
             self.new_copy(name=name,path=path)
             return
+
+        if git_username and git_useremail:
+            self.app_project.project.config_git_user_email(git_username,git_useremail)
 
         self.copy_manager_menu.insert_option(0,name)
         self.copy_manager_var.set(name)
