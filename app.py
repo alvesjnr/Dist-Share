@@ -46,6 +46,7 @@ class App(object):
         #Copy menu
         self.copymenu = tk.Menu(self.menubar, tearoff=0)
         self.copymenu.add_command(label="Add new",command=self.new_copy, state=tk.DISABLED)
+        self.copymenu.add_command(label="Configure",command=self.configure_copies, state=tk.DISABLED)
 
         #Tools menu
         self.toolsmenu = tk.Menu(self.menubar, tearoff=0)
@@ -105,6 +106,7 @@ class App(object):
             self.app_project.project.update_project()
             self.tree.fill(self.app_project.project.project_items)
             self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
+            self.copymenu.entryconfigure('Configure',state=tk.NORMAL)
             for copy in self.app_project.project.copies_manager.copies:
                 self.copy_manager_menu.insert_option(0,copy.copy_name)
             self.app_project.project.copies_manager.current_copy = None
@@ -125,6 +127,7 @@ class App(object):
         self.app_project = AppProject(project)
         self.tree.fill(self.app_project.project.project_items)
         self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
+        self.copymenu.entryconfigure('Configure',state=tk.NORMAL)
     
     def new_copy(self,event=None,name=None,path=None):
         gc = git.config.GitConfigParser(os.path.expanduser('~/.gitconfig'))
@@ -179,6 +182,7 @@ class App(object):
             self.app_project.project.update_project()
             self.tree.fill(self.app_project.project.project_items)
             self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
+            self.copymenu.entryconfigure('Configure',state=tk.NORMAL)
             for copy in self.app_project.project.copies_manager.copies:
                 self.copy_manager_menu.insert_option(0,copy.copy_name)
     
@@ -372,6 +376,9 @@ class App(object):
                 return False
         else:
             return True
+
+    def configure_copies(self,event=None):
+        CopiesConfig.copies_config_window(self.root,self.app_project)
 
 
 class AppProject(object):

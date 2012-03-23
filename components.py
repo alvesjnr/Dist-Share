@@ -690,7 +690,76 @@ class AskPassword(tk.Frame):
         window.transient(root)
 
 
-if __name__ == '__main__':
+class CopiesConfig(tk.Frame):
+
+    def __init__(self,Master=None,app_project=None,copies_name=None,**kw):
+
+        apply(tk.Frame.__init__,(self,Master),kw)
+        self.root = Master
+        self.app_project = app_project
+        self.__Frame2 = tk.Frame(self)
+        self.__Frame2.pack(side='top')
+        self.var_selected_copy = tk.StringVar()
+        self.var_selected_copy.set('-')
+        self.selecte_copy = tk.OptionMenu(self.__Frame2,self.var_selected_copy,*copies_name)
+        self.selecte_copy.pack(side='top')
+        self.__Frame1 = tk.Frame(self,relief='sunken')
+        self.__Frame1.pack(side='top')
+        self.__Frame7 = tk.Frame(self)
+        self.__Frame7.pack(side='top')
+        self.cancel_button = tk.Button(self.__Frame7,text='Exit',command=self.event_cancel)
+        self.cancel_button.pack(side='right')
+        self.okay_button = tk.Button(self.__Frame7,text='Apply',command=self.event_okay)
+        self.okay_button.pack(side='right')
+        self.__Frame4 = tk.Frame(self.__Frame1)
+        self.__Frame4.pack(side='left')
+        self.__Label5 = tk.Label(self.__Frame4,text='SVN repository:')
+        self.__Label5.pack(side='top')
+        self.__Label1 = tk.Label(self.__Frame4,text='Copy path:')
+        self.__Label1.pack(side='bottom')
+        self.__Label6 = tk.Label(self.__Frame4,text='Local repository:')
+        self.__Label6.pack(side='bottom')
+        self.__Frame3 = tk.Frame(self.__Frame1,height=333,relief='sunken')
+        self.__Frame3.pack(expand='yes',fill='both',side='left')
+        self.label_svn = tk.Label(self.__Frame3)
+        self.label_svn.pack(side='top')
+        self.label_path = tk.Label(self.__Frame3)
+        self.label_path.pack(side='top')
+        self.label_copy = tk.Label(self.__Frame3)
+        self.label_copy.pack(side='bottom')
+        self.__Frame5 = tk.Frame(self.__Frame1)
+        self.__Frame5.pack(side='left')
+        self.__Label2 = tk.Label(self.__Frame5,text='Remote:')
+        self.__Label2.pack(side='top')
+        self.__Label3 = tk.Label(self.__Frame5,text='Git user name:')
+        self.__Label3.pack(side='top')
+        self.__Label4 = tk.Label(self.__Frame5,text='Git user E-mail:')
+        self.__Label4.pack(side='top')
+        self.__Frame6 = tk.Frame(self.__Frame1)
+        self.__Frame6.pack(side='left')
+        self.entry_remote = tk.Entry(self.__Frame6,width=25)
+        self.entry_remote.pack(side='top')
+        self.entry_username = tk.Entry(self.__Frame6,width=25)
+        self.entry_username.pack(side='top')
+        self.entry_email = tk.Entry(self.__Frame6,width=25)
+        self.entry_email.pack(side='top')
+
+    def event_okay(self):
+        pass
+
+    def event_cancel(self,event=None):
+        self.root.quit()
+
+    @classmethod
+    def copies_config_window(cls,root,app_project):
+        copies_name = [copy.copy_name for copy in app_project.project.copies_manager.copies]
+        window = tk.Toplevel(root)
+        widget = cls(window,app_project,copies_name)
+        widget.pack()
+        window.transient(root)
+
+
+def main():
     def print_it(event):
         print strvar.get()
     r = tk.Tk()
@@ -703,3 +772,12 @@ if __name__ == '__main__':
     om.delete_option(2)
     r.mainloop()
 
+
+def ex_copies_config():
+    r = tk.Tk()
+    CopiesConfig.copies_config_window(r,None)
+    r.mainloop()
+
+
+if __name__ == '__main__':
+    ex_copies_config()
