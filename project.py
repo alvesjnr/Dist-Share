@@ -147,23 +147,30 @@ class Copy(object):
             if not os.path.exists(self.get_copy_path(item)) and item not in self.avoided_files:
                 self.copy_new_file(item)
 
-
         for item in changed_files:
             self.update_file(item)
 
         for item in self.files_to_delete:
             self.remove_renamed_file(item)
         self.files_to_delete = []
-
-        self.repo.git.add(self.copy_location)
+        
         self.removed_files.sort(key=lambda x: x.count(FOLDER_SEPARATOR))
         self.removed_files.reverse()     
+        
         for item in self.removed_files:
             try:
                 self.repo.git.rm(item)
                 self.repo.git.commit(m='updating project %s' % self.copy_name)
             except:
                 pass # expected error
+        
+        self.repo.git.add(self.copy_location)
+        try:
+            self.repo.git.commit(m='updating project %s' % self.copy_name)
+        except git.GitCommandError:
+            #expected: none to commit
+            pass
+        
         self.repo.git.checkout('master')
         self.repo.git.merge('update_branch')
         self.repo.git.add(self.copy_location)
