@@ -284,6 +284,7 @@ class App(object):
         if self.app_project.name != '-' and self.force_save():
             self.app_project.project.copies_manager.current_copy.license = self.license_board.get_license()
             self.save_project()
+            self.app_project.project.copies_manager.current_copy.update_license()
 
     def license_text_changed(self,event=None):
         if self.app_project.name != '-':
