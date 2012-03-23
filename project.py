@@ -257,6 +257,12 @@ class Copy(object):
         for item in self.items:
             if item not in self.avoided_files and os.path.isfile(item):
                 self.update_file(item)
+                self.repo.git.add(self.get_copy_path(item))
+        try:
+            self.repo.git.commit(m='Updating license')
+        except git.GitCommandError as e:
+            #Expected error: nothing to commit
+            sys.stderr.write(e)
 
 
 class CopiesManager(object):
