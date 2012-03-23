@@ -107,6 +107,7 @@ class App(object):
             self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
             for copy in self.app_project.project.copies_manager.copies:
                 self.copy_manager_menu.insert_option(0,copy.copy_name)
+            self.app_project.project.copies_manager.current_copy = None
 
     def event_exit(self,event=None):
         if self.check_for_saving:
@@ -311,6 +312,7 @@ class App(object):
         if not self.force_create_copy():
             return
         self.app_project.project.update_copies()
+        self.save_project()
         update_message = format_log_message(self.app_project.project.update_log)
         if update_message:
             Board.show_message(self.root,update_message)
