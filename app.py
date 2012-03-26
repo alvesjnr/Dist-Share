@@ -69,12 +69,12 @@ class App(object):
                                                     *('-'), 
                                                     command=self.change_to_copy)
         self.copy_manager_update_button = tk.Button(self.copy_manager_frame, text='Refresh', command=self.refresh_copy)
-        #self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project')
+        self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project', command=self.update_project)
         self.copy_manager_label.pack(side=tk.LEFT)
         self.copy_manager_menu.pack(side=tk.LEFT)
         self.copy_manager_update_button.pack(side=tk.LEFT)
         tk.Frame(self.copy_manager_frame, width=102, height=2, bd=0, relief=tk.SUNKEN).pack(fill=tk.X, padx=25, pady=5, side=tk.LEFT) #separator
-        #self.copy_manager_update_project_button.pack(side=tk.LEFT)
+        self.copy_manager_update_project_button.pack(side=tk.LEFT)
 
         #project frame contains both tree and rename list
         self.project_frame_tree = tk.Frame(self.project_frame)
@@ -90,9 +90,9 @@ class App(object):
         self.license_frame.pack(anchor='w',side=tk.LEFT)
 
         #status frame
-        self.status_board = StatusBoard(Master=self.status_frame,update_callback=self.update_project, width=602, height=2, bd=0, relief=tk.SUNKEN)
-        self.status_board.pack(side=tk.LEFT, fill=tk.X)
-        self.status_frame.pack(side=tk.LEFT)
+        # self.status_board = StatusBoard(Master=self.status_frame,update_callback=self.update_project, width=602, height=2, bd=0, relief=tk.SUNKEN)
+        # self.status_board.pack(side=tk.LEFT, fill=tk.X)
+        # self.status_frame.pack(side=tk.LEFT)
 
         #packing frames
         self.copy_manager_frame.pack(anchor='w')
