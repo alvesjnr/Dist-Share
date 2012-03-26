@@ -94,10 +94,24 @@ class ModificationList(object):
         self.modification_list = []
 
         self.frame = tk.Frame(self.root)
-        self.listbox = tk.Listbox(self.frame, width=50, height=30)
-        self.listbox.bind('<Double-Button-1>', self.edit_entry)
-        self.listbox.pack()
 
+        self.listbox_frame = tk.Frame(self.frame)
+        self.listbox = tk.Listbox(self.listbox_frame, width=50, height=30)
+        self.listbox.bind('<Double-Button-1>', self.edit_entry)
+
+
+        self.x_listbox_scroll = tk.Scrollbar(self.listbox_frame,orient=tk.HORIZONTAL)
+        self.y_listbox_scroll = tk.Scrollbar(self.listbox_frame)
+
+        self.listbox.config(xscrollcommand=self.x_listbox_scroll.set,yscrollcommand=self.y_listbox_scroll.set,)
+        self.x_listbox_scroll.config(command=self.listbox.xview)
+        self.y_listbox_scroll.config(command=self.listbox.yview)
+
+        self.x_listbox_scroll.pack(side=tk.BOTTOM,fill=tk.X)
+        self.y_listbox_scroll.pack(side=tk.RIGHT,fill=tk.Y)
+
+        self.listbox.pack()
+        self.listbox_frame.pack()
         self.buttons_frame = tk.Frame(self.frame)
         tk.Button(self.buttons_frame, text='Add', command=self.add_entry_window).pack(side=tk.LEFT)
         tk.Button(self.buttons_frame, text='Edit', command=self.edit_entry).pack(side=tk.LEFT)
