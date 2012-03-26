@@ -383,10 +383,6 @@ class NewProject(tk.Frame):
         self.warning_text.pack(side='top')
         self.callback_get_login = None
 
-        # #REMOVE remove it after tests
-        # self.url_entry.insert(0,'')
-        # self.pth_entry.insert(0,'/home/antonio/copies_of_project/original')
-
     def event_cancel(self,Event=None):
         self.root.destroy()
 
@@ -400,7 +396,7 @@ class NewProject(tk.Frame):
     def load_path_event(self,Event=None):
         repository_path = tkFileDialog.askdirectory()
         if self._project_path_okay(repository_path):
-            self.pth_entry.delete(0)
+            self.pth_entry.delete(0,tk.END)
             self.pth_entry.insert(0,repository_path)
 
     def create_callback_get_login(self,param):
@@ -523,15 +519,15 @@ class NewCopy(tk.Frame):
         self.warning_text = tk.Text(self.__Frame1)
         self.warning_text.pack(side='top')
 
-        #REMOVE remove it after tests
-        self.name_entry.insert(0,'copy')
-        self.path_entry.insert(0,'/tmp/copy')
-
     def event_cancel(self,Event=None):
         self.root.destroy()
 
     def event_load_path(self,Event=None):
-        pass
+        copy_path = tkFileDialog.askdirectory()
+
+        if copy_path:
+            self.path_entry.delete(0,tk.END)
+            self.path_entry.insert(0,copy_path)
 
     def event_okay(self,Event=None):
         name = self.name_entry.get()
