@@ -702,17 +702,20 @@ class AskPassword(tk.Frame):
 
 class CopiesConfig(tk.Frame):
 
-    def __init__(self,Master=None,app_project=None,copies_name=None,**kw):
+    def __init__(self,Master=None,app_project=None,copies_name=None,callback_delete_copy=None,**kw):
 
         apply(tk.Frame.__init__,(self,Master),kw)
         self.root = Master
+        self.callback_delete_copy = callback_delete_copy
         self.app_project = app_project
         self.__Frame2 = tk.Frame(self)
         self.__Frame2.pack(side='top')
         self.var_selected_copy = tk.StringVar()
         self.var_selected_copy.set('-')
-        self.selecte_copy = tk.OptionMenu(self.__Frame2,self.var_selected_copy,*copies_name)
-        self.selecte_copy.pack(side='top')
+        self.selecte_copy = EditableOptionMenu(self.__Frame2,self.var_selected_copy,*copies_name)
+        self.selecte_copy.pack(side='left')
+        self.delete_button = tk.Button(self.__Frame2,text='Delete',command=self.event_delete)
+        self.delete_button.pack(side='left')
         self.__Frame1 = tk.Frame(self,relief='sunken')
         self.__Frame1.pack(side='top')
         self.__Frame7 = tk.Frame(self)
@@ -758,13 +761,24 @@ class CopiesConfig(tk.Frame):
         pass
 
     def event_cancel(self,event=None):
-        self.root.quit()
+        self.root.destroy()
+
+    def event_delete(self,event=None):
+        selected_copy = self.var_selected_copy.get()
+
+        if selected_copy != '-':
+            response = tkMessageBox.askokcancel('Delete copy','This action is definitive. do you really want to delete copy %s?' % selected_copy)
+
+            if response:
+                if self.callback_delete_copy:
+                    self.callback_delete_copy(selected_copy)
+                self.selecte_copy.delete_option(selected_copy)
 
     @classmethod
-    def copies_config_window(cls,root,app_project):
+    def copies_config_window(cls,root,app_project,callback_delete_copy=None):
         copies_name = [copy.copy_name for copy in app_project.project.copies_manager.copies]
         window = tk.Toplevel(root)
-        widget = cls(window,app_project,copies_name)
+        widget = cls(window,app_project,copies_name,callback_delete_copy)
         widget.pack()
         window.transient(root)
 
