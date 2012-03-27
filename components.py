@@ -712,7 +712,7 @@ class CopiesConfig(tk.Frame):
         self.__Frame2.pack(side='top')
         self.var_selected_copy = tk.StringVar()
         self.var_selected_copy.set('-')
-        self.selecte_copy = EditableOptionMenu(self.__Frame2,self.var_selected_copy,*copies_name)
+        self.selecte_copy = EditableOptionMenu(self.__Frame2,self.var_selected_copy,*copies_name,command=self.event_change_copy)
         self.selecte_copy.pack(side='left')
         self.delete_button = tk.Button(self.__Frame2,text='Delete',command=self.event_delete)
         self.delete_button.pack(side='left')
@@ -773,6 +773,32 @@ class CopiesConfig(tk.Frame):
                 if self.callback_delete_copy:
                     self.callback_delete_copy(selected_copy)
                 self.selecte_copy.delete_option(selected_copy)
+                self.var_selected_copy.set('-')
+                self.label_svn.configure(text='')
+                self.label_path.configure(text='')
+                self.label_copy.configure(text='')
+                self.entry_remote.delete(0,tk.END)
+                self.entry_username.delete(0,tk.END)
+                self.entry_email.delete(0,tk.END)
+
+    def event_change_copy(self,event=None):
+        selected_copy = self.var_selected_copy.get()
+        for copy in self.app_project.project.copies_manager.copies:
+            if copy.copy_name == selected_copy:
+                selected_copy = copy
+                break
+        self.label_svn.configure(text=self.app_project.project.url)
+        self.label_path.configure(text=self.app_project.project.path)
+        self.label_copy.configure(text=copy.copy_location)
+        self.entry_remote.delete(0,tk.END)
+        self.entry_username.delete(0,tk.END)
+        self.entry_email.delete(0,tk.END)
+        try:
+            self.entry_remote.insert(0,copy.remote_url or '')
+            self.entry_username.insert(0,copy.git_username or '')
+            self.entry_email.insert(0,copy.git_useremail or '')
+        except AttributeError as e:
+            sys.stderr.write('Apparently some informations about the copy are missing. Are you using an old version of distribution file?\nError: %s\n' % e)
 
     @classmethod
     def copies_config_window(cls,root,app_project,callback_delete_copy=None):
