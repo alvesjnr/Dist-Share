@@ -72,6 +72,7 @@ def add_license(filepath, text):
             except:
                 #FIXME: seek for the correct encoding!
                 f.write(old)
+                sys.stderr.write('License could not be applied to file %s. Unknow encoding (Why you are not using utf-8?).\n' % filepath)
 
 
 def process_license(license, extension):
