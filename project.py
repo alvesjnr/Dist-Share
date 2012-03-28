@@ -25,8 +25,8 @@ class Copy(object):
         self.files_to_delete = []
         self.removed_files = []
         self.initialized = False
-        self.git_username = None
-        self.git_useremail = None
+        self.git_username = ''
+        self.git_useremail = ''
 
     def unavoid_file(self, full_filename):
         files_to_unavoid = []
