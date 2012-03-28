@@ -10,6 +10,7 @@ import StringIO
 
 FOLDER_SEPARATOR = os.sep
 SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
+DIST_FILE_VERSION = 'V0.3'
 
 
 class Copy(object):
@@ -404,6 +405,7 @@ class Project(object):
             self.copies_manager = CopiesManager(self.path)
             self.updated_files = set()
             self.project_items = get_files(self.path)
+            self._version = DIST_FILE_VERSION
 
         elif dumped_project:
             project = pickle.loads(dumped_project)
@@ -415,6 +417,9 @@ class Project(object):
             self.path = project.path
             self.url = project.url
             self.project_items = project.project_items
+
+            #TODO: check and convert versions!
+            self._version = project._version
 
         else:
             raise Exception("It wouldn't possible to create a new project")
@@ -440,7 +445,7 @@ class Project(object):
                 if name == copy.copy_name:
                     raise DupllicatedCopyNameException()
         self.copies_manager.create_copy(path,name=name)
-        if name: 
+        if name:
             self.copies_manager.set_current_copy(copy_name=name)
         else:
             self.copies_manager.set_current_copy(copy_path=path)
