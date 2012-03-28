@@ -1,4 +1,8 @@
 
+def apply_minimun_version(project):
+    project._version = 'v0.1'
+
+
 def compare_versions(a,b):
     """return -1 if a<b, 0 if a==b and 1 if a>b"""
     while a.count('.') < 2:
@@ -16,6 +20,7 @@ def compare_versions(a,b):
             continue
     else:
         return 0
+
 
 def update_version(old_version):
     #TODO

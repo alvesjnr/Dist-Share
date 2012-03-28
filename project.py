@@ -1,5 +1,5 @@
 from functions import *
-from version import update_version, compare_versions
+from version import update_version, compare_versions, apply_minimun_version
 import filecmp
 import os
 import shutil
@@ -416,7 +416,12 @@ class Project(object):
         elif dumped_project:
             project = pickle.loads(dumped_project)
 
-            #TODO: check and convert versions!
+            try:
+                project._version
+            except AttributeError:
+                apply_minimun_version(project)
+            
+            #TODO: convert versions!
             versions_diff = compare_versions(project._version,DIST_FILE_VERSION)
             if versions_diff == 0:
                 self._version = project._version
