@@ -1,4 +1,5 @@
 from functions import *
+from version import update_version, compare_versions
 import filecmp
 import os
 import shutil
@@ -393,6 +394,11 @@ class NewProjectException(BaseException):
     For some reason it would not possible to create a new project
     """
 
+class FutureVersionError(BaseException):
+    """
+    The file that you are loading has a version that is not suported by ypur Dist Share version. Please update Dist Share
+    """
+
 class Project(object):
 
     def __init__(self,url=None,path=None,dumped_project=None,callback_get_login=None):
@@ -410,6 +416,16 @@ class Project(object):
         elif dumped_project:
             project = pickle.loads(dumped_project)
 
+            #TODO: check and convert versions!
+            versions_diff = compare_versions(project._version,DIST_FILE_VERSION)
+            if versions_diff == 0:
+                self._version = project._version
+            elif versions_diff == -1:
+                project = update_version(project)
+                self._version = DIST_FILE_VERSION
+            elif versions_diff == 1:
+                raise FutureVersionError()
+
             self.client = pysvn.Client()
             self.copies_manager = project.copies_manager
             self.copies_manager.remember_repo()
@@ -417,9 +433,6 @@ class Project(object):
             self.path = project.path
             self.url = project.url
             self.project_items = project.project_items
-
-            #TODO: check and convert versions!
-            self._version = project._version
 
         else:
             raise Exception("It wouldn't possible to create a new project")
