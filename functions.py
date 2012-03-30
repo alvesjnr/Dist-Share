@@ -27,7 +27,7 @@ def split_path(full_filename):
             full_filename.split(FOLDER_SEPARATOR)[-1])
 
 
-class CreateCopyError(Exception):
+class CreateCopyError(BaseException):
     """Something wrong when copying"""
     message="Something wrong when copying"
 
