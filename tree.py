@@ -12,6 +12,49 @@ SPACE = '%20'
 SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
 
 
+class Board(object):
+
+    def __init__(self, root):
+        
+        self.root = root
+        
+        self.text_frame = tk.Frame(self.root )
+        self.text_board = tk.Text(self.text_frame, height=40, width=100 )
+        self.text_scroll = tk.Scrollbar(self.text_frame)
+        
+        self.text_board.config(yscrollcommand=self.text_scroll.set)
+        self.text_scroll.config(command=self.text_board.yview)
+        self.text_board.pack(side=tk.LEFT)
+        self.text_scroll.pack(side=tk.LEFT,
+                                  fill=tk.Y)
+
+        self.buttons_frame = tk.Frame(self.root)
+
+        self.button_quit = tk.Button(self.buttons_frame,
+                                     text="Quit",
+                                     command=self.event_quit,
+                                     width=8)
+        
+        self.button_quit.pack(side=tk.LEFT)
+
+        
+        self.text_frame.pack()
+        self.buttons_frame.pack()
+    
+    def fill_board(self, text):
+        self.text_board.insert(1.0, text)
+    
+    def event_quit(self):
+        self.root.destroy()
+
+    @classmethod
+    def show_message(cls,root,message):
+        window = tk.Toplevel(root)
+        widget = cls(window)
+        widget.fill_board(message)
+        window.transient(root)
+
+
 class CheckboxTree(object):
 
     def __init__(self, root, parent, height=500, width=600):
@@ -22,7 +65,7 @@ class CheckboxTree(object):
         self.parent = parent
         self.cl = Tix.CheckList(self.root, 
                                 browsecmd=self.selectItem,
-                                command=self.selectItem,
+                                command=self.double_click,
                                 width=self.width, 
                                 height=self.height,)
         self.cl.hlist.configure(indicatorcmd=self.colapse,
@@ -34,7 +77,7 @@ class CheckboxTree(object):
         self.cl.destroy()
         self.cl = Tix.CheckList(self.root, 
                                 browsecmd=self.selectItem,
-                                command=self.selectItem,
+                                command=self.double_click,
                                 width=self.width, 
                                 height=self.height,)
         self.cl.hlist.configure(indicatorcmd=self.colapse,
@@ -72,6 +115,11 @@ class CheckboxTree(object):
             self.cl.close(a)
         elif mode == 'open':
             self.cl.open(a)
+
+    def double_click(self,item):
+        text = open(FOLDER_SEPARATOR+item.replace(SPACE,' ')).read()
+        Board.show_message(self.root,text)
+        self.selectItem(item)
 
     def selectItem(self, item):
         item = item.replace(' ',SPACE)
