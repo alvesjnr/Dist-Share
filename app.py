@@ -273,6 +273,7 @@ class App(object):
             self.copy_manager_var.set(self.app_project.project.copies_manager.current_copy.copy_name)
             return
 
+        self.tree.reset_last_states()
         self.listbox.reset_list()
         if not name:
             name = self.copy_manager_var.get()
@@ -285,6 +286,7 @@ class App(object):
             self.tree.set_all_items()
             unselected_items = self.app_project.project.copies_manager.current_copy.avoided_files
             self.tree.set_unchecked_items(unselected_items)
+            self.tree.freeze_state()
             self.app_project.name = self.app_project.project.copies_manager.current_copy.copy_name
 
             renamed_files = self.app_project.project.copies_manager.current_copy.change_profile

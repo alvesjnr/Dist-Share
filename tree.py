@@ -62,7 +62,14 @@ class CheckboxTree(object):
         self.root = root
         self.height = height
         self.width = width
+        self.come_from_undo = False
         self.parent = parent
+        self.buttons_frame = tk.Frame(self.root)
+        tk.Button(self.buttons_frame,text='Undo',command=self.undo).pack(anchor='w',side='left')
+        tk.Button(self.buttons_frame,text='Expand all',command=self.expand_all).pack(anchor='w',side='left')
+        tk.Button(self.buttons_frame,text='Colapse all',command=self.colapse_all).pack(anchor='w',side='left')
+        self.buttons_frame.pack(side='top',anchor='w')
+        self.last_states = []
         self.cl = Tix.CheckList(self.root, 
                                 browsecmd=self.selectItem,
                                 command=self.double_click,
@@ -89,7 +96,7 @@ class CheckboxTree(object):
         items = self._remove_space(items)
         self.make_list(normalize_items(items))
         self.all_items = self.cl.getselection()
-        
+
     def make_list(self, items):
         
         for i in items:
@@ -102,6 +109,14 @@ class CheckboxTree(object):
         self.cl.autosetmode()
         for name in self.cl.getselection():
             self.cl.close(name)
+
+    def expand_all(self,event=None):
+        for i in self.all_items:
+            self.cl.open(i)
+
+    def colapse_all(self,event=None):
+        for i in self.all_items:
+            self.cl.close(i)
     
     def colapse(self,a):
         if self.odd:
@@ -117,11 +132,16 @@ class CheckboxTree(object):
             self.cl.open(a)
 
     def double_click(self,item):
-        text = open(FOLDER_SEPARATOR+item.replace(SPACE,' ')).read()
-        Board.show_message(self.root,text)
-        self.selectItem(item)
+        try:
+            text = open(FOLDER_SEPARATOR+item.replace(SPACE,' ')).read()
+            Board.show_message(self.root,text)
+        except IOError:
+            pass # Just tried to read a folder. It is NOT possible
+        finally:
+            self.selectItem(item)
 
     def selectItem(self, item):
+        self.come_from_undo = False
         item = item.replace(' ',SPACE)
         status = self.cl.getstatus(item)
         #do the top-bottom propagation
@@ -136,7 +156,24 @@ class CheckboxTree(object):
             parent = FOLDER_SEPARATOR.join(parent.split(FOLDER_SEPARATOR)[:-1])
         
         self.parent.change_callback()
-    
+        self.freeze_state()
+
+    def freeze_state(self,item=None):
+        freezed_state = self.get_checked_items(mode='off')
+        if (not self.last_states) or (self.last_states[0] != freezed_state):
+            self.last_states.insert(0,freezed_state)
+
+    def reset_last_states(self):
+        self.last_states = []
+
+    def undo(self,event=None):
+        if len(self.last_states) > 1:
+            self.last_states.pop(0)
+        state = self.last_states[0]
+        self.set_all_items()
+        self.set_unchecked_items(state)
+        self.parent.change_callback()
+
     def forget(self):
         self.cl.forget()
 
