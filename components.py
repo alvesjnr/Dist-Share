@@ -767,19 +767,18 @@ class CopiesConfig(tk.Frame):
         selected_copy = self.var_selected_copy.get()
 
         if selected_copy != '-':
-            response = tkMessageBox.askokcancel('Delete copy','This action is definitive. do you really want to delete copy %s?' % selected_copy)
+            response = tkMessageBox.askokcancel('Delete copy','This action is definitive. Do you really want to delete copy %s?' % selected_copy)
 
-            if response:
-                if self.callback_delete_copy:
-                    self.callback_delete_copy(selected_copy)
-                self.selecte_copy.delete_option(selected_copy)
-                self.var_selected_copy.set('-')
-                self.label_svn.configure(text='')
-                self.label_path.configure(text='')
-                self.label_copy.configure(text='')
-                self.entry_remote.delete(0,tk.END)
-                self.entry_username.delete(0,tk.END)
-                self.entry_email.delete(0,tk.END)
+            if response and self.callback_delete_copy:
+                if self.callback_delete_copy(selected_copy):
+                    self.selecte_copy.delete_option(selected_copy)
+                    self.var_selected_copy.set('-')
+                    self.label_svn.configure(text='')
+                    self.label_path.configure(text='')
+                    self.label_copy.configure(text='')
+                    self.entry_remote.delete(0,tk.END)
+                    self.entry_username.delete(0,tk.END)
+                    self.entry_email.delete(0,tk.END)
 
     def event_change_copy(self,event=None):
         selected_copy = self.var_selected_copy.get()

@@ -4,6 +4,7 @@
 import os
 import sys
 import pickle
+import shutil
 
 import Tix
 import Tkinter as tk
@@ -387,7 +388,23 @@ class App(object):
             return True
 
     def configure_copies(self,event=None):
-        CopiesConfig.copies_config_window(self.root,self.app_project)
+        CopiesConfig.copies_config_window(self.root,self.app_project,callback_delete_copy=self.callback_delete_copy)
+
+    def callback_delete_copy(self,copy_name):
+
+        if not self.force_save():
+            return False
+
+        if self.app_project.project.copies_manager.current_copy:
+            if self.app_project.project.copies_manager.current_copy.copy_name == copy_name:
+                self.change_to_copy('-')
+        for copy in self.app_project.project.copies_manager.copies:
+            if copy.copy_name == copy_name:
+                shutil.rmtree(copy.copy_location)
+                self.app_project.project.copies_manager.copies.remove(copy)
+                self.copy_manager_menu.delete_option(copy_name)
+        self.save_project()
+        return True
 
 
 class AppProject(object):
