@@ -14,6 +14,24 @@ SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
 DIST_FILE_VERSION = 'V0.3'
 
 
+class DupllicatedCopyNameException(BaseException):
+    """
+    This copy name already exists
+    """
+
+
+class NewProjectException(BaseException):
+    """
+    For some reason it would not possible to create a new project
+    """
+
+
+class FutureVersionError(BaseException):
+    """
+    The file that you are loading has a version that is not suported by ypur Dist Share version. Please update Dist Share
+    """
+
+
 class Copy(object):
 
     def __init__(self,source_path, name='', license=None):
@@ -384,20 +402,6 @@ def update_local_copy(path):
 
     return updated_files,deleted_files,new_files
 
-class DupllicatedCopyNameException(BaseException):
-    """
-    This copy name already exists
-    """
-
-class NewProjectException(BaseException):
-    """
-    For some reason it would not possible to create a new project
-    """
-
-class FutureVersionError(BaseException):
-    """
-    The file that you are loading has a version that is not suported by ypur Dist Share version. Please update Dist Share
-    """
 
 class Project(object):
 
