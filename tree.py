@@ -167,6 +167,10 @@ class CheckboxTree(object):
         self.last_states = []
 
     def undo(self,event=None):
+        
+        if not self.last_states:
+            return
+
         if len(self.last_states) > 1:
             self.last_states.pop(0)
         state = self.last_states[0]

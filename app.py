@@ -309,14 +309,21 @@ class App(object):
             self.app_project.saved = False
 
     def update_project(self,event=None):
+        
+        if self.app_project.project.copies_manager.current_copy is None:
+            return
+
         if not self.force_save():
             return
+
         self.app_project.project.update_project()
         self.tree.reset_tree()
         self.tree.fill(self.app_project.project.project_items)
         self.tree.set_unchecked_items(self.app_project.project.copies_manager.current_copy.avoided_files)
+
         if not self.force_create_copy():
             return
+
         self.app_project.project.update_copies()
         self.save_project()
         update_message = format_log_message(self.app_project.project.update_log)
