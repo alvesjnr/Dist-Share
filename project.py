@@ -117,11 +117,30 @@ class Copy(object):
             self.git_config_user()
         
         self.create_placeholder_file(self.copy_location)
+        self.remove_empty_folders(self.copy_location)
         self.repo.git.add(self.copy_location)
         self.repo.git.commit(m='First commit of the project %s' % self.copy_name)
 
         self.repo.git.branch('update_branch')   # create an update branch to use when updating repository
         self.initialized = True
+
+    def remove_empty_folders(self,path):
+
+        if not os.path.isdir(path):
+            return
+
+        # remove empty subfolders
+        files = os.listdir(path)
+        if len(files):
+            for f in files:
+                fullpath = os.path.join(path, f)
+                if os.path.isdir(fullpath):
+                    self.remove_empty_folders(fullpath)
+    
+      # if folder empty, delete it
+        files = os.listdir(path)
+        if len(files) == 0 and not '.git' in path:
+            os.rmdir(path)
 
     def create_placeholder_file(self,path):
         with open(os.path.join(path,'COPY.info'),'w') as f:
@@ -207,6 +226,7 @@ class Copy(object):
             except:
                 pass # expected error
 
+        self.remove_empty_folders(self.copy_location)
         self.repo.git.add(self.copy_location)
         try:
             self.repo.git.commit(m='updating project %s' % self.copy_name)
