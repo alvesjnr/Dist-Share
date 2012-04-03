@@ -47,6 +47,7 @@ class Copy(object):
         self.initialized = False
         self.git_username = ''
         self.git_useremail = ''
+        self.remote_url = ''
 
     def unavoid_file(self, full_filename):
         files_to_unavoid = []
@@ -115,11 +116,17 @@ class Copy(object):
         if self.git_useremail and self.git_username:
             self.git_config_user()
         
+        self.create_placeholder_file(self.copy_location)
         self.repo.git.add(self.copy_location)
         self.repo.git.commit(m='First commit of the project %s' % self.copy_name)
 
         self.repo.git.branch('update_branch')   # create an update branch to use when updating repository
         self.initialized = True
+
+    def create_placeholder_file(self,path):
+        with open(os.path.join(path,'COPY.info'),'w') as f:
+            text = "Your copy named '%s' were created. Fell free to remove this file" % self.copy_name
+            f.write(text)
 
     def git_config_user(self):
         gc = git.config.GitConfigParser(os.path.join(self.copy_location,'.git/config'),read_only=False)

@@ -15,8 +15,8 @@ def compare_tree(left,right):
     on_left = [f.replace(left,'',1) for f in get_files(left)]
     on_right = [f.replace(right,'',1) for f in get_files(right)]
 
-    right_only = [f for f in on_right if f not in on_left and '.git' not in f and '.svn' not in f]
-    left_only = [f for f in on_left if f not in on_right and '.git' not in f and '.svn' not in f]
+    right_only = [f for f in on_right if f not in on_left and '.git' not in f and '.svn' not in f and 'COPY.info' not in f]
+    left_only = [f for f in on_left if f not in on_right and '.git' not in f and '.svn' not in f and 'COPY.info' not in f]
 
     return {'right_only':right_only, 'left_only':left_only}
 

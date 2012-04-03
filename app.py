@@ -90,11 +90,6 @@ class App(object):
         self.license_board.pack(anchor='w')
         self.license_frame.pack(anchor='w',side=tk.LEFT)
 
-        #status frame
-        # self.status_board = StatusBoard(Master=self.status_frame,update_callback=self.update_project, width=602, height=2, bd=0, relief=tk.SUNKEN)
-        # self.status_board.pack(side=tk.LEFT, fill=tk.X)
-        # self.status_frame.pack(side=tk.LEFT)
-
         #packing frames
         self.copy_manager_frame.pack(anchor='w')
         self.project_frame.pack()
@@ -147,7 +142,9 @@ class App(object):
         new_copy_window.transient(self.root)
 
     def callback_new_copy(self,path,name,**kw):
-        git_username,git_useremail = kw['git_username'],kw['git_useremail']
+        if not self.force_save():
+            return
+        git_username,git_useremail,remote_url = kw['git_username'],kw['git_useremail'],kw['remote_url']
 
         try:
             self.app_project.project.add_new_copy(path=path,name=name)
@@ -159,6 +156,17 @@ class App(object):
         if git_username and git_useremail:
             self.app_project.project.config_git_user_email(git_username,git_useremail)
 
+        # fakes a hard copy
+        current_copy = self.app_project.project.copies_manager.current_copy
+        map(current_copy.avoid_file,current_copy.items)
+        
+        self.app_project.project.create_current_copy()
+
+        if remote_url:
+            current_copy.create_remote('origin',remote_url)
+
+        map(current_copy.unavoid_file,current_copy.items)
+
         self.copy_manager_menu.insert_option(0,name)
         self.copy_manager_var.set(name)
         self.app_project.locked_copy = True
@@ -167,6 +175,7 @@ class App(object):
         self.app_project.name = self.app_project.project.copies_manager.current_copy.copy_name
         self.license_board.erase()
         self.app_project.update_avoided_files()
+        self.save_project()
 
     def load_project(self, event=None):
 

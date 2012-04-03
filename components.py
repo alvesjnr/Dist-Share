@@ -452,6 +452,7 @@ class NewCopy(tk.Frame):
         self.__Label2.pack(side='left')
         self.name_entry = tk.Entry(self.__Frame3)
         self.name_entry.pack(side='left')
+
         self.__Frame2 = tk.Frame(self)
         self.__Frame2.pack(side='top')
         self.__Label1 = tk.Label(self.__Frame2,text='Copy Location:')
@@ -461,6 +462,13 @@ class NewCopy(tk.Frame):
         self.load_path_button = tk.Button(self.__Frame2,text='Load')
         self.load_path_button.pack(side='left')
         self.load_path_button.bind('<ButtonRelease-1>',self.event_load_path)
+
+        self.frame_remote = tk.Frame(self)
+        tk.Label(self.frame_remote,text='Remote URL:').pack(side='left')
+        self.remote_entry = tk.Entry(self.frame_remote)
+        self.remote_entry.pack(side='left')
+        self.frame_remote.pack(side='top')
+
         self.__Frame4 = tk.Frame(self)
         self.okay = tk.Button(self.__Frame4,text='Create Copy')
         self.okay.pack(side='left')
@@ -547,8 +555,9 @@ class NewCopy(tk.Frame):
             else:
                 git_useremail = None
                 git_username = None
+            remote_url = self.remote_entry.get() or None
 
-            self.callback(path,name,git_useremail=git_useremail,git_username=git_username)
+            self.callback(path,name,git_useremail=git_useremail,git_username=git_username,remote_url=remote_url)
             self.root.destroy()
     
     def _check_copy_name(self,name):
