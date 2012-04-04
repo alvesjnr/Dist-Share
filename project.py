@@ -11,7 +11,7 @@ import StringIO
 
 FOLDER_SEPARATOR = os.sep
 SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
-DIST_FILE_VERSION = 'V0.3'
+DIST_FILE_VERSION = 'v0.3.1'
 
 
 class DupllicatedCopyNameException(BaseException):
@@ -48,6 +48,8 @@ class Copy(object):
         self.git_username = ''
         self.git_useremail = ''
         self.remote_url = ''
+        self.linked_file_license = False
+        self.linked_file_license_path = ''
 
     def unavoid_file(self, full_filename):
         files_to_unavoid = []
@@ -109,7 +111,7 @@ class Copy(object):
 
                 shutil.copy2(item,copy_target)
                 if self.license:
-                    add_license(copy_target,self.license)
+                    self.apply_license(copy_target)
 
         self.repo = git.Repo.init(self.copy_location)
         
@@ -301,7 +303,7 @@ class Copy(object):
                 sys.stderr.write('Warning: File %s could not be copied. Broke link?\n' % filename)
 
             if self.license:
-                add_license(copy_name,self.license)
+                self.apply_license(copy_name)
 
     def update_file(self,filename):
         """ use it to update a file that already exists!!!
@@ -311,18 +313,20 @@ class Copy(object):
             os.remove(copy_name)
             shutil.copy2(filename,copy_name)
             if self.license:
-                add_license(copy_name,self.license)
+                self.apply_license(copy_name)
 
     def update_license(self):
         for item in self.items:
             if item not in self.avoided_files and os.path.isfile(item):
                 self.update_file(item)
-                self.repo.git.add(self.get_copy_path(item))
+                abs_path = os.path.abspath(self.get_copy_path(item))
+                self.repo.git.add(abs_path)
+
         try:
             self.repo.git.commit(m='Updating license')
         except git.GitCommandError as e:
             #Expected error: nothing to commit
-            sys.stderr.write(e)
+            sys.stderr.write('Nothing to commit\n')
 
     def configure_remote(self,git_username,git_useremail,remote_url):
         if remote_url:
@@ -333,6 +337,21 @@ class Copy(object):
             self.git_username = git_username
             self.git_useremail = git_useremail
             self.git_config_user()
+
+    def apply_license(self,copy_name):
+        if self.linked_file_license:
+            license = open(self.linked_file_license_path).read()
+        else:
+            license = self.license
+        add_license(copy_name,license)
+
+    def add_linked_file_license(self,file_path):
+        self.linked_file_license = True
+        self.linked_file_license_path = file_path
+
+    def remove_linked_file_license(self):
+        self.linked_file_license = False
+        self.linked_file_license_path = ''
 
 
 class CopiesManager(object):

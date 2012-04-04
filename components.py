@@ -605,9 +605,10 @@ class NewCopy(tk.Frame):
 
 class LicenseBoard(tk.Frame):
 
-    def __init__(self,Master=None, change_callback=None, update_license_event=None,**kw):
+    def __init__(self,Master=None, change_callback=None, update_license_event=None,app_project=None,**kw):
 
         apply(tk.Frame.__init__,(self,Master),kw)
+        self.app_project = app_project
         self.change_callback = change_callback
         tk.Label(self,text='License:').pack(anchor='w')
         self.__Frame2 = tk.Frame(self)
@@ -624,16 +625,37 @@ class LicenseBoard(tk.Frame):
         self.__Text1.pack(side='top',anchor='w')
         self.__Frame3 = tk.Frame(self)
         self.__Frame3.pack(side='top',anchor='w')
-        self.label_var = tk.StringVar()
-        self.label_var.set('')
-        self.__Label1 = tk.Label(self.__Frame3,anchor='w',textvariable=self.label_var)
-        self.__Label1.pack(side='left',anchor='w')
+
         self.__Button1 = tk.Button(self.__Frame3,anchor='w',justify='left'
             ,text='Load', command=self.load_license_event)
         self.__Button1.pack(side='left',anchor='w')
+        self.link_lincese_button = tk.Button(self.__Frame3,anchor='w',justify='left'
+            ,text='Link to file', command=self.link_file)
+        self.link_lincese_button.pack(side='left',anchor='w')
         self.__Button2 = tk.Button(self.__Frame3,anchor='w',justify='left'
             ,text='Update License', command=update_license_event)
         self.__Button2.pack(side='left',anchor='w')
+
+    def link_file(self,event=None):
+        current_copy = self.app_project.project.copies_manager.current_copy
+        current_copy.linked_file_license = not current_copy.linked_file_license
+        if current_copy.linked_file_license:
+            license_file = tkFileDialog.askopenfile()
+
+            if not license_file:
+                return
+
+            self.link_lincese_button.config(text='Unlink file')
+            self.__Text1.delete(1.0,tk.END)
+            self.__Text1.insert(tk.END,"Linked to file: %s" % license_file.name)
+            self.__Text1.config(state='disabled')
+            current_copy.linked_file_license_path = license_file.name
+
+        else:
+            self.link_lincese_button.config(text='Link to file')
+            self.__Text1.config(state='normal')
+            self.__Text1.delete(1.0,tk.END)
+            self.__Text1.insert(tk.END,current_copy.license)
 
     def load_license_event(self,event=None):
         fileobj = tkFileDialog.askopenfile()
@@ -641,14 +663,21 @@ class LicenseBoard(tk.Frame):
         if fileobj:
             self.__Text1.delete(1.0,tk.END)
             self.__Text1.insert(tk.END,fileobj.read())
-            self.label_var.set(fileobj.name)
             self.change_callback()
 
-    def fill(self,text):
-        if isinstance(text,basestring):
-            self.__Text1.delete(1.0,tk.END)
+    def fill(self):
+        current_copy = self.app_project.project.copies_manager.current_copy
+        self.__Text1.delete(1.0,tk.END)
+        if current_copy.linked_file_license:
+            self.link_lincese_button.config(text='Unlink file')
+            text = "Linked to file: %s" % current_copy.linked_file_license_path
             self.__Text1.insert(tk.END,text)
-            self.label_var.set('')
+            self.__Text1.config(state='disabled')
+        else:
+            text = current_copy.license
+            self.link_lincese_button.config(text='Link to file')
+            self.__Text1.config(state='normal')
+            self.__Text1.insert(tk.END,text)
 
     def get_license(self):
         return self.__Text1.get(1.0,tk.END)

@@ -88,7 +88,7 @@ class App(object):
         self.project_frame_list.pack(side=tk.LEFT)
 
         #License Board
-        self.license_board = LicenseBoard(self.license_frame,change_callback=self.license_text_changed,update_license_event=self.update_license_event)
+        self.license_board = LicenseBoard(self.license_frame,change_callback=self.license_text_changed,update_license_event=self.update_license_event,app_project=self.app_project)
         self.license_board.pack(anchor='w')
         self.license_frame.pack(anchor='w',side=tk.LEFT)
 
@@ -108,6 +108,7 @@ class App(object):
             for copy in self.app_project.project.copies_manager.copies:
                 self.copy_manager_menu.insert_option(0,copy.copy_name)
             self.app_project.project.copies_manager.current_copy = None
+            self.license_board.app_project = self.app_project
 
     def event_exit(self,event=None):
         if self.check_for_saving:
@@ -123,6 +124,7 @@ class App(object):
 
     def callback_new_project(self,project):
         self.app_project = AppProject(project)
+        self.license_board.app_project = self.app_project
         self.tree.fill(self.app_project.project.project_items)
         self.copymenu.entryconfigure('Add new',state=tk.NORMAL)
         self.copymenu.entryconfigure('Configure',state=tk.NORMAL)
@@ -197,6 +199,7 @@ class App(object):
             self.copymenu.entryconfigure('Configure',state=tk.NORMAL)
             for copy in self.app_project.project.copies_manager.copies:
                 self.copy_manager_menu.insert_option(0,copy.copy_name)
+            self.license_board.app_project = self.app_project
     
     def save_project(self, event=None):
 
@@ -305,7 +308,7 @@ class App(object):
             if renamed_files:
                 self.listbox.fill(renamed_files)
 
-            self.license_board.fill(self.app_project.project.copies_manager.current_copy.license)
+            self.license_board.fill()
 
     def update_license_event(self):
         """ Forces rewriting license in all files of the copy
