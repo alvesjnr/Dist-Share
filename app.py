@@ -71,11 +71,13 @@ class App(object):
                                                     command=self.change_to_copy)
         self.copy_manager_update_button = tk.Button(self.copy_manager_frame, text='Refresh', command=self.refresh_copy)
         self.copy_manager_update_project_button = tk.Button(self.copy_manager_frame, text='Update Project', command=self.update_project)
+        self.copy_manager_push_copy_button = tk.Button(self.copy_manager_frame, text='Push Copy', command=self.push_copy)
         self.copy_manager_label.pack(side=tk.LEFT)
         self.copy_manager_menu.pack(side=tk.LEFT)
         self.copy_manager_update_button.pack(side=tk.LEFT)
         tk.Frame(self.copy_manager_frame, width=102, height=2, bd=0, relief=tk.SUNKEN).pack(fill=tk.X, padx=25, pady=5, side=tk.LEFT) #separator
         self.copy_manager_update_project_button.pack(side=tk.LEFT)
+        self.copy_manager_push_copy_button.pack(side=tk.LEFT)
 
         #project frame contains both tree and rename list
         self.project_frame_tree = tk.Frame(self.project_frame)
@@ -319,7 +321,7 @@ class App(object):
             self.app_project.saved = False
 
     def update_project(self,event=None):
-        
+
         if self.app_project.project.copies_manager.current_copy is None:
             return
 
@@ -339,6 +341,51 @@ class App(object):
         update_message = format_log_message(self.app_project.project.update_log)
         if update_message:
             Board.show_message(self.root,update_message)
+
+    def push_copy(self,event=None):
+
+        current_copy = self.app_project.project.copies_manager.current_copy
+
+        if current_copy is None or not current_copy.remote_url:
+            return
+
+        copy_name = current_copy.copy_name
+        branchs = current_copy.repo.git.branch()
+        try:
+            diff = current_copy.repo.git.diff('origin/master','master','--stat')
+        except git.GitCommandError:
+            tkMessageBox.showwarning('Remote error','Could not reach remote repository. Is the remote URL correct?')
+            return
+        status = current_copy.repo.git.status()
+        
+        message = \
+"""
+Push copy: %s 
+
+Remote repository at: %s
+
+Brach:
+%s
+
+Status:
+%s
+
+Diff:
+%s
+""" % (copy_name,current_copy.remote_url,branchs,status,diff)
+
+        PushBoard.show_board(self.root,message=message,callback=self.push_copy_callback,copy_name=copy_name)
+
+    def push_copy_callback(self,copy_name):
+        copy = self.app_project.project.get_copy_by_name(name=copy_name)
+
+        if copy is None:
+            tkMessageBox.showerror('Copy not found',"Copy '%s' not found!" % copy_name)
+            return
+
+        copy.repo.git.push('origin','master')
+        tkMessageBox.showinfo('Copy pushed',"You have successfully pushed the copy '%s' to the remote repository." % copy_name)
+        
 
     def refresh_copy(self,event=None):
         self.app_project.saved = True

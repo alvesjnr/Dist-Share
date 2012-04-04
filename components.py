@@ -85,6 +85,38 @@ class SaveQuitBoard(Board):
         self.root.destroy()
 
 
+class PushBoard(Board):
+
+    def __init__(self,root,push_callback,copy_name):
+
+        super(PushBoard,self).__init__(root)
+        self.button_quit.configure(text='Cancel')
+        self.copy_name = copy_name
+        self.push_callback = push_callback
+        self.button_save = tk.Button(self.buttons_frame,
+                                     text="Push",
+                                     command=self.event_push,
+                                     width=8)
+        self.button_save.pack(side=tk.RIGHT)
+
+    def event_push(self):   
+        proceed = tkMessageBox.askyesno('Push copy', 'Push copy to remote repository?')
+
+        if proceed:
+            self.push_callback(self.copy_name)
+            self.event_quit()
+
+    def event_quit(self):
+        self.root.destroy()
+
+    @classmethod
+    def show_board(cls,root,message,callback,copy_name):
+        window = tk.Toplevel(root)
+        widget = cls(window,callback,copy_name)
+        widget.fill_board(message)
+        window.transient(root)
+
+
 class ModificationList(object):
 
     def __init__(self, root, parent):

@@ -545,3 +545,10 @@ class Project(object):
     def config_git_user_email(self,username,email):
         self.copies_manager.current_copy.git_username = username
         self.copies_manager.current_copy.git_useremail = email
+
+    def get_copy_by_name(self,name):
+        for copy in self.copies_manager.copies:
+            if copy.copy_name == name:
+                return copy
+
+        return None
