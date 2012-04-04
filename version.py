@@ -5,6 +5,8 @@ def apply_minimun_version(project):
 
 def compare_versions(a,b):
     """return -1 if a<b, 0 if a==b and 1 if a>b"""
+    a = a.replace('V','v')
+    b = b.replace('V','v')
     while a.count('.') < 2:
         a += '.0'
     while b.count('.') < 2:
@@ -23,5 +25,16 @@ def compare_versions(a,b):
 
 
 def update_version(old_version):
-    #TODO
+    
+    """
+        Update file to v0.3.1
+    """
+    if compare_versions(old_version._version,'v0.3.1') == -1:
+        for copy in old_version.copies_manager.copies:
+            if not hasattr(copy,'linked_file_license'):
+                copy.linked_file_license = False
+            if not hasattr(copy,'linked_file_license_path'):
+                copy.linked_file_license_path = ''
+        old_version._version = 'v0.3.1'
+
     return old_version
