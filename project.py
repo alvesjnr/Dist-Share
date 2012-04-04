@@ -324,6 +324,16 @@ class Copy(object):
             #Expected error: nothing to commit
             sys.stderr.write(e)
 
+    def configure_remote(self,git_username,git_useremail,remote_url):
+        if remote_url:
+            self.repo.git.remote('rm','origin')
+            self.create_remote('origin',remote_url)
+
+        if git_username and git_useremail:
+            self.git_username = git_username
+            self.git_useremail = git_useremail
+            self.git_config_user()
+
 
 class CopiesManager(object):
 

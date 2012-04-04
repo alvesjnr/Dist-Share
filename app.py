@@ -354,8 +354,7 @@ class App(object):
         try:
             diff = current_copy.repo.git.diff('origin/master','master','--stat')
         except git.GitCommandError:
-            tkMessageBox.showwarning('Remote error','Could not reach remote repository. Is the remote URL correct?')
-            return
+            diff = "First commit? Remote looks empty!"
         status = current_copy.repo.git.status()
         
         message = \
@@ -383,9 +382,14 @@ Diff:
             tkMessageBox.showerror('Copy not found',"Copy '%s' not found!" % copy_name)
             return
 
-        copy.repo.git.push('origin','master')
+        try:
+            copy.repo.git.push('origin','master')
+        except git.GitCommandError:
+            tkMessageBox.showerror('Remote not found','It were not possible to push to remote repository. Remote not found!')
+            sys.stderr.write("Warning: Remote not found\n")
+            return
+
         tkMessageBox.showinfo('Copy pushed',"You have successfully pushed the copy '%s' to the remote repository." % copy_name)
-        
 
     def refresh_copy(self,event=None):
         self.app_project.saved = True
@@ -444,7 +448,7 @@ Diff:
             return True
 
     def configure_copies(self,event=None):
-        CopiesConfig.copies_config_window(self.root,self.app_project,callback_delete_copy=self.callback_delete_copy)
+        CopiesConfig.copies_config_window(self.root,self.app_project,callback_delete_copy=self.callback_delete_copy,callback_save=self.save_project)
 
     def callback_delete_copy(self,copy_name):
 

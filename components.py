@@ -743,10 +743,11 @@ class AskPassword(tk.Frame):
 
 class CopiesConfig(tk.Frame):
 
-    def __init__(self,Master=None,app_project=None,copies_name=None,callback_delete_copy=None,**kw):
+    def __init__(self,Master=None,app_project=None,copies_name=None,callback_delete_copy=None,callback_save=None,**kw):
 
         apply(tk.Frame.__init__,(self,Master),kw)
         self.root = Master
+        self.callback_save = callback_save
         self.callback_delete_copy = callback_delete_copy
         self.app_project = app_project
         self.__Frame2 = tk.Frame(self)
@@ -799,7 +800,22 @@ class CopiesConfig(tk.Frame):
         self.entry_email.pack(side='top')
 
     def event_okay(self):
-        pass
+        selected_copy = self.var_selected_copy.get()
+        if selected_copy != '-':
+            response = tkMessageBox.askokcancel('Change remote configuration',"Do you really want to change the remote configuration of  '%s'?" % selected_copy)
+            if response:
+                copy = self.app_project.project.get_copy_by_name(selected_copy)
+                if copy is None:
+                    tkMessageBox.showerror('Copy not found',"The copy '%s' were not found!" % selected_copy)
+                    return
+
+                git_username = self.entry_username.get()
+                git_useremail = self.entry_email.get()
+                remote_url = self.entry_remote.get()
+
+                copy.configure_remote(git_username,git_useremail,remote_url)
+                self.callback_save()
+
 
     def event_cancel(self,event=None):
         self.root.destroy()
@@ -841,10 +857,10 @@ class CopiesConfig(tk.Frame):
             sys.stderr.write('Apparently some informations about the copy are missing. Are you using an old version of distribution file?\nError: %s\n' % e)
 
     @classmethod
-    def copies_config_window(cls,root,app_project,callback_delete_copy=None):
+    def copies_config_window(cls,root,app_project,callback_delete_copy=None,callback_save=None):
         copies_name = [copy.copy_name for copy in app_project.project.copies_manager.copies]
         window = tk.Toplevel(root)
-        widget = cls(window,app_project,copies_name,callback_delete_copy)
+        widget = cls(window,app_project,copies_name,callback_delete_copy,callback_save=callback_save)
         widget.pack()
         window.transient(root)
 
