@@ -1,0 +1,11 @@
+Dist Share
+==========
+
+A distributions manager tool
+
+What does it do?
+----------------
+
+Dist share is a tool capable of map a SVN repository to one or more git copies, with the possibility of avoid files/packages/modules of the original project.
+
+With Dist Share you will be able to manage different copies of your project, applying the proper license to each one and avoiding files or modifying files name.
