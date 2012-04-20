@@ -185,6 +185,7 @@ class ModificationList(object):
             self.parent.rename_file_callback()
 
     def fill(self,items):
+        items = items.copy()
         for item in items:
             self._add_item(item,items[item])
 

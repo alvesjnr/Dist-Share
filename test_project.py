@@ -266,6 +266,25 @@ class ProjectTest(unittest.TestCase):
         diff = compare_tree('/tmp/test_place','/tmp/blah2')
         self.assertTrue(diff['left_only'] == ['/nha.c'] and diff['right_only'] == [])
 
+    def test_renaming_file_with_svn_move(self):
+        p = Project(path='/tmp/test_place', url='svn://alvesjnr@localhost/tmp/svnrepo')
+        p.add_new_copy('/tmp/blah')
+        p.create_current_copy()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertFalse(diff['left_only'] or diff['right_only'])
+        os.system('svn mv /tmp/workspace/svnrepo/nha.c /tmp/workspace/svnrepo/nha_2.c')
+        os.system('svn commit /tmp/workspace/svnrepo -m "changing name"')
+        p.update_project()
+        p.update_copies()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertTrue(diff['left_only'] == ['/nha_2.c'] and diff['right_only'] == [])
+        os.system('svn mv /tmp/workspace/svnrepo/nha_2.c /tmp/workspace/svnrepo/nha.c')
+        os.system('svn commit /tmp/workspace/svnrepo -m "restoring old name"')
+        p.update_project()
+        p.update_copies()
+        diff = compare_tree('/tmp/test_place','/tmp/blah')
+        self.assertTrue(diff['left_only'] == ['/nha.c'] and diff['right_only'] == [])
+
     def test_persist_project(self):
         p = Project(path='/tmp/test_place',url='svn://alvesjnr@localhost/tmp/svnrepo')
         p.add_new_copy('/tmp/blah')
@@ -291,7 +310,6 @@ class ProjectTest(unittest.TestCase):
         self.assertTrue(filecmp.cmp('/tmp/workspace/svnrepo/nha.c','/tmp/blah/nha.c'))
         diff = compare_tree('/tmp/test_place','/tmp/blah2')
         self.assertTrue(diff['left_only'] == ['/nha.c'] and diff['right_only'] == [])
-
 
 if __name__ == '__main__':
     unittest.main()

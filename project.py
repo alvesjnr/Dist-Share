@@ -11,7 +11,7 @@ import StringIO
 
 FOLDER_SEPARATOR = os.sep
 SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
-DIST_FILE_VERSION = 'v0.3.1'
+DIST_FILE_VERSION = 'v0.3.2'
 
 
 class DupllicatedCopyNameException(BaseException):
@@ -50,6 +50,7 @@ class Copy(object):
         self.remote_url = ''
         self.linked_file_license = False
         self.linked_file_license_path = ''
+        self.post_update_script = None
 
     def unavoid_file(self, full_filename):
         files_to_unavoid = []
@@ -235,6 +236,9 @@ class Copy(object):
         except git.GitCommandError:
             #expected: none to commit
             pass
+
+        if self.post_update_script:
+            os.system(post_update_script)
 
         self.repo.git.checkout('master')
         self.repo.git.merge('update_branch')

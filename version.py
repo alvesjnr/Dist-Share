@@ -37,4 +37,13 @@ def update_version(old_version):
                 copy.linked_file_license_path = ''
         old_version._version = 'v0.3.1'
 
+    """
+        Update file to v0.3.2
+    """
+    if compare_versions(old_version._version,'v0.3.2') == -1:
+        for copy in old_version.copies_manager.copies:
+            if not hasattr(copy,'post_update_script'):
+                copy.post_update_script = None
+        old_version._version = 'v0.3.2'
+
     return old_version
