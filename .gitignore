@@ -1,3 +1,5 @@
+build
+dist
 Dist_Share.egg-info/
 env
 *.pyc
