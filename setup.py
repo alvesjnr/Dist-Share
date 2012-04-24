@@ -10,7 +10,7 @@ setup(name='Dist Share',
       author='Intec Photonics',
       author_email='intec@ugent.be',
       url='',
-	    install_requires=['pygit'],
+	    install_requires=['gitpython'],
       packages=['dist_share'],
       entry_points = {
         'console_scripts': [
