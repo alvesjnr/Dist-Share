@@ -789,9 +789,7 @@ class CopiesConfig(tk.Frame):
         self.delete_button = tk.Button(self.__Frame2,text='Delete',command=self.event_delete)
         self.delete_button.pack(side='left')
         self.__Frame1 = tk.Frame(self,relief='sunken')
-        self.__Frame1.pack(side='top')
         self.__Frame7 = tk.Frame(self)
-        self.__Frame7.pack(side='top')
         self.cancel_button = tk.Button(self.__Frame7,text='Exit',command=self.event_cancel)
         self.cancel_button.pack(side='right')
         self.okay_button = tk.Button(self.__Frame7,text='Apply',command=self.event_okay)
@@ -829,6 +827,30 @@ class CopiesConfig(tk.Frame):
         self.entry_email = tk.Entry(self.__Frame6,width=25)
         self.entry_email.pack(side='top')
 
+        self.frame_script = tk.Frame(self)
+        tk.Label(self.frame_script, text='Post update script:').pack(side='left')
+        self.entry_script = tk.Entry(self.frame_script)
+        self.button_script = tk.Button(self.frame_script, text='Load', command=self.event_load_script)
+        self.entry_script.pack(side='left')
+        self.button_script.pack(side='left')
+        self.__Frame1.pack(side='top')
+        self.frame_script.pack(side='top')
+        self.__Frame7.pack(side='top')
+
+    def event_load_script(self,event=None):
+        current_copy_name = self.var_selected_copy.get()
+
+        if not current_copy_name:
+            return
+
+        script_file = tkFileDialog.askopenfile()
+
+        if script_file:
+            copy = self.app_project.project.get_copy_by_name(current_copy_name)
+            copy.post_update_script = script_file
+            self.entry_script.delete(0,tk.END)
+            self.entry_script.insert(0,copy.post_update_script or '')
+
     def event_okay(self):
         selected_copy = self.var_selected_copy.get()
         if selected_copy != '-':
@@ -845,7 +867,6 @@ class CopiesConfig(tk.Frame):
 
                 copy.configure_remote(git_username,git_useremail,remote_url)
                 self.callback_save()
-
 
     def event_cancel(self,event=None):
         self.root.destroy()
@@ -888,7 +909,7 @@ class CopiesConfig(tk.Frame):
 
     @classmethod
     def copies_config_window(cls,root,app_project,callback_delete_copy=None,callback_save=None):
-        copies_name = [copy.copy_name for copy in app_project.project.copies_manager.copies]
+        copies_name = ['']#[copy.copy_name for copy in app_project.project.copies_manager.copies]
         window = tk.Toplevel(root)
         widget = cls(window,app_project,copies_name,callback_delete_copy,callback_save=callback_save)
         widget.pack()

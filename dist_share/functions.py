@@ -55,7 +55,7 @@ def add_license(filepath, text):
     else:
         return  # If the extension is not listed, we don't apply the license
 
-    with open(filepath, "r+") as f:
+    with open(filepath, "U") as f:
         firstline = f.readline()
         if DO_NOT_ADD_LICENSE_MARKER in firstline.upper():
             old = f.read()
@@ -64,11 +64,10 @@ def add_license(filepath, text):
                 f.write(old)
                 return    #avoid any problems of reusing the f var
         else:
-            f.seek(0)
-            old = f.read()
-            f.seek(0)
+            old = open(filepath, "U").read()
+            f = open(filepath, 'w')
             try:
-                f.write(license + old)
+                f.write(str(license) + old)
             except:
                 #FIXME: seek for the correct encoding!
                 f.write(old)
