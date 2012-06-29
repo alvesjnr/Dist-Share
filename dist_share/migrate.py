@@ -4,18 +4,17 @@ import pysvn
 import os
 from project import *
 
+
 EXEC_PATH = os.path.abspath('.')
-PREVIOUS_PATH = None
-PREVIOUS_ORIGINAL_PATH = None
 CURRENT_ORIGINAL_PATH = os.path.join(EXEC_PATH, 'original')
 
 
 def migrate_copy(copy):
     copy.copy_location = os.path.join(EXEC_PATH,copy.copy_name)
     os.mkdir(os.path.join(EXEC_PATH,copy.copy_name))
-    copy.items = [f.replace(PREVIOUS_PATH,EXEC_PATH) for f in copy.items]
-    copy.avoided_files = [f.replace(PREVIOUS_ORIGINAL_PATH,CURRENT_ORIGINAL_PATH) for f in copy.avoided_files]
-    copy.removed_files = [f.replace(PREVIOUS_PATH,EXEC_PATH) for f in copy.removed_files]
+    copy.items = [f.replace(PREVIOUS_PATH,EXEC_PATH,1) for f in copy.items]
+    copy.avoided_files = [f.replace(PREVIOUS_ORIGINAL_PATH,CURRENT_ORIGINAL_PATH,1) for f in copy.avoided_files]
+    copy.removed_files = [f.replace(PREVIOUS_PATH,EXEC_PATH,1) for f in copy.removed_files]
     copy.source_path = CURRENT_ORIGINAL_PATH
 
 
@@ -23,7 +22,7 @@ def migrate_project(dumped_project):
 
     project = Project(dumped_project=dumped_project)
     os.mkdir(CURRENT_ORIGINAL_PATH)
-    project.project_items = [f.replace(PREVIOUS_ORIGINAL_PATH,CURRENT_ORIGINAL_PATH) for f in project.project_items]
+    project.project_items = [f.replace(PREVIOUS_ORIGINAL_PATH,CURRENT_ORIGINAL_PATH,1) for f in project.project_items]
     project.path = CURRENT_ORIGINAL_PATH
     for copy in project.copies_manager.copies:
         migrate_copy(copy)
@@ -44,15 +43,16 @@ def clone_original(project):
 
 def clone_copies(project):
     g = git.Git()
+    import pdb; pdb.set_trace()
     for copy in project.copies_manager.copies:
-        if copy.remote_url:
-            g.clone(copy.remote, copy.copy_path)
+        if hasattr(copy,'remote_url') and copy.remote_url:
+            g.clone(copy.remote_url, copy.copy_location)
         else:
             copy.create_new_copy()
 
 
 if __name__=='__main__':
-    
+
     global PREVIOUS_PATH
     global PREVIOUS_ORIGINAL_PATH
 
