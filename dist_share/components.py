@@ -909,7 +909,7 @@ class CopiesConfig(tk.Frame):
 
     @classmethod
     def copies_config_window(cls,root,app_project,callback_delete_copy=None,callback_save=None):
-        copies_name = ['']#[copy.copy_name for copy in app_project.project.copies_manager.copies]
+        copies_name = [copy.copy_name for copy in app_project.project.copies_manager.copies]
         window = tk.Toplevel(root)
         widget = cls(window,app_project,copies_name,callback_delete_copy,callback_save=callback_save)
         widget.pack()

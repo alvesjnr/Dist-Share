@@ -1,3 +1,4 @@
+
 from functions import *
 from version import update_version, compare_versions, apply_minimun_version
 import filecmp
@@ -8,6 +9,7 @@ import pysvn
 import subprocess
 import pickle
 import StringIO
+
 
 FOLDER_SEPARATOR = os.sep
 SVN_MARKER = os.path.join(FOLDER_SEPARATOR,'.svn')
@@ -97,6 +99,7 @@ class Copy(object):
 
     def create_new_copy(self):
         self.create_directories_struct()
+
         for item in self.items:
             if SVN_MARKER in item:
                 continue   
@@ -478,13 +481,13 @@ class Project(object):
             self._version = DIST_FILE_VERSION
 
         elif dumped_project:
+
             project = pickle.loads(dumped_project)
 
             try:
                 project._version
             except AttributeError:
                 apply_minimun_version(project)
-            
             #TODO: convert versions!
             versions_diff = compare_versions(project._version,DIST_FILE_VERSION)
             if versions_diff == 0:
@@ -504,17 +507,17 @@ class Project(object):
             self.project_items = project.project_items
 
         else:
-            raise Exception("It wouldn't possible to create a new project")
+            raise Exception("It wasn not possible to create a new project")
 
     def init_new_copy(self,url,path,callback_get_login=None):
         if os.path.exists(path):
             if not os.path.isdir(path):
-                 raise Exception("It wouldn't possible to create local repository at %" % path)
+                 raise Exception("It wasn not possible to create local repository at %" % path)
         else:
             try:
                 os.makedirs(path)
             except OSError:
-                raise Exception("It wouldn't possible to create local repository at %" % path)
+                raise Exception("It wasn not possible to create local repository at %" % path)
 
         # At this point, local_copy folder were created and is ready to checkout
         self.client = pysvn.Client()
