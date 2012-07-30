@@ -164,6 +164,7 @@ class Copy(object):
         if not os.path.exists(self.copy_location):
             os.makedirs(self.copy_location)
         for item in self.items:
+
             if SVN_MARKER in item:
                 continue
             if os.path.isdir(item) and item not in self.avoided_files:
@@ -487,16 +488,17 @@ class Project(object):
             try:
                 project._version
             except AttributeError:
-                apply_minimun_version(project)
+                # apply_minimun_version(project)
+                pass
             #TODO: convert versions!
-            versions_diff = compare_versions(project._version,DIST_FILE_VERSION)
-            if versions_diff == 0:
-                self._version = project._version
-            elif versions_diff == -1:
-                project = update_version(project)
-                self._version = DIST_FILE_VERSION
-            elif versions_diff == 1:
-                raise FutureVersionError()
+            # versions_diff = compare_versions(project._version,DIST_FILE_VERSION)
+            # if versions_diff == 0:
+            #     self._version = project._version
+            # elif versions_diff == -1:
+            #     project = update_version(project)
+            #     self._version = DIST_FILE_VERSION
+            # elif versions_diff == 1:
+            #     raise FutureVersionError()
 
             self.client = pysvn.Client()
             self.copies_manager = project.copies_manager
@@ -588,3 +590,22 @@ class Project(object):
                 return copy
 
         return None
+
+    def clone_copy(self, copy_name, clone_name):
+        
+        if clone_name in [copy.copy_name for copy in self.copies_manager.copies]:
+            raise Exception("Name %s already in use." % copy_name)
+
+        copy = self.get_copy_by_name(copy_name)
+
+        clone_path = copy.copy_location[:copy.copy_location.rindex(copy_name)] + clone_name
+
+        self.add_new_copy(clone_path, clone_name)
+
+        clone = self.copies_manager.current_copy
+        clone.avoided_files = copy.avoided_files[::]
+        clone.change_profile = copy.change_profile.copy()
+
+        self.create_current_copy()
+
+        return self
